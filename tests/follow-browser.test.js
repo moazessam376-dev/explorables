@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, rmSync, mkdirSync } from "node:fs";
+import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { join } from "node:path";
 import { findBrowser, launch } from "../tools/cdp.mjs";
@@ -80,5 +80,28 @@ test("the built index.html opens in standards mode, as UTF-8",
         })()`);
         assert.deepEqual(r, ["CSS1Compat", "UTF-8"], page);
       }
+    } finally { await b.close(); }
+  });
+
+test("a text-source page hides the auto-complete switch, which needs a clock",
+  { skip: !findBrowser() && "no Chrome or Edge on this machine", timeout: 60000 }, async () => {
+    const dir = join(root, "tests/.out/fb-text");
+    rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
+    cpSync(join(root, "tests/fixtures/mini-page"), dir, { recursive: true });
+    const plan = JSON.parse(readFileSync(join(dir, "plan.json"), "utf8"));
+    plan.source = { kind: "text" };
+    writeFileSync(join(dir, "plan.json"), JSON.stringify(plan));
+    assert.equal(spawnSync(process.execPath, [join(root, "tools/build.mjs"), "page", dir]).status, 0);
+    const b = await launch(findBrowser());
+    const ev = async expr => (await b.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true })).result.value;
+    try {
+      await b.send("Page.enable"); await b.send("Runtime.enable");
+      await b.send("Page.navigate", { url: pathToFileURL(join(dir, ".preview.html")).href });
+      const shown = await ev(`(async () => {
+        for (let i = 0; i < 100 && document.readyState !== "complete"; i++) await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 300));
+        return document.getElementById("fl-autodone").offsetParent !== null;
+      })()`);
+      assert.equal(shown, false);
     } finally { await b.close(); }
   });
