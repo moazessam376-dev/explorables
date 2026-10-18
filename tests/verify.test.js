@@ -88,3 +88,20 @@ test("a section id with RegExp characters is found", () => {
   assert.match(r.stdout, /static: ok/);
   assert.equal(r.status, 0, r.stdout);
 });
+
+test("a CHROME_PATH that doesn't exist is named in the error", () => {
+  const dir = freshCopy("v-nochrome");
+  const bad = join(out, "no-such-chrome.exe");
+  const r = verify(dir, { CHROME_PATH: bad });
+  assert.match(r.stdout, /CHROME_PATH/);
+  assert.ok(r.stdout.includes(bad), r.stdout);
+  assert.notEqual(r.status, 0, r.stdout);
+});
+
+test("a CHROME_PATH that isn't a browser is named in the error", () => {
+  const dir = freshCopy("v-notchrome");
+  const r = verify(dir, { CHROME_PATH: process.execPath });
+  assert.match(r.stdout, /CHROME_PATH/);
+  assert.ok(r.stdout.includes(process.execPath), r.stdout);
+  assert.notEqual(r.status, 0, r.stdout);
+});

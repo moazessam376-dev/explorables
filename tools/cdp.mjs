@@ -27,8 +27,17 @@ export function findBrowser() {
   return null;
 }
 
+// a CHROME_PATH that points nowhere: say so, instead of acting as if no browser were set
+export function chromePathProblem() {
+  const p = process.env.CHROME_PATH;
+  if (!p || process.env.EXPLORABLES_NO_BROWSER) return null;
+  return existsSync(p) ? null : `CHROME_PATH is set to ${p}, which doesn't exist`;
+}
+
 export async function launch(path, { width = 1280, height = 860 } = {}) {
   if (typeof WebSocket === "undefined") throw new Error("the browser checks need Node 22 or newer (built-in WebSocket)");
+  // name the setting when the path came from it, so a wrong CHROME_PATH is easy to spot
+  const who = path === process.env.CHROME_PATH ? `CHROME_PATH (${path})` : path;
   const profile = mkdtempSync(join(tmpdir(), "explorables-chrome-"));
   const proc = spawn(path, [
     "--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profile}`,
@@ -38,13 +47,14 @@ export async function launch(path, { width = 1280, height = 860 } = {}) {
   ], { stdio: ["ignore", "ignore", "pipe"] });
   const port = await new Promise((res, rej) => {
     let buf = "";
-    const timer = setTimeout(() => rej(new Error("browser did not start in 20 s")), 20000);
+    const timer = setTimeout(() => rej(new Error(`${who} did not start in 20 s`)), 20000);
     proc.stderr.on("data", d => {
       buf += d;
       const m = /DevTools listening on ws:\/\/[^:]+:(\d+)\//.exec(buf);
       if (m) { clearTimeout(timer); res(+m[1]); }
     });
-    proc.on("exit", code => { clearTimeout(timer); rej(new Error(`browser exited (${code}) before it was ready`)); });
+    proc.on("error", e => { clearTimeout(timer); rej(new Error(`could not start ${who}: ${e.message}`)); });
+    proc.on("exit", code => { clearTimeout(timer); rej(new Error(`${who} exited (${code}) before it was ready: is it Chrome or Edge?`)); });
   });
   const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: "PUT" })).json();
   const ws = new WebSocket(target.webSocketDebuggerUrl);

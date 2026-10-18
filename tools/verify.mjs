@@ -14,7 +14,7 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { validatePlan } from "./plan.mjs";
-import { findBrowser, launch } from "./cdp.mjs";
+import { findBrowser, launch, chromePathProblem } from "./cdp.mjs";
 
 const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 const SKINS = ["auto", "field-dark", "chalk", "notebook-light", "notebook-dark", "manim"];
@@ -74,6 +74,8 @@ async function loaded(b, extra = 1200) {
 const evalJSON = async (b, expr) => (await b.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true })).result.value;
 
 export async function browserChecks(pageDir, plan, { screens } = {}) {
+  const bad = chromePathProblem();
+  if (bad) throw new Error(bad);
   const path = findBrowser();
   if (!path) return { skipped: "no Chrome or Edge found (set CHROME_PATH to use one)" };
   if (typeof WebSocket === "undefined") return { skipped: "needs Node 22 or newer" };
