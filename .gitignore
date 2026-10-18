@@ -4,3 +4,4 @@ tests/.out/
 .superpowers/
 **/.preview.html
 **/.last-build
+tests/private-words.txt
