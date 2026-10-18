@@ -27,9 +27,10 @@ function privateWords() {
 }
 
 test("the example is impersonal", () => {
-  const html = readFileSync(join(dir, "index.html"), "utf8");
-  for (const [word] of privateWords()) {
-    assert.doesNotMatch(html, new RegExp(`\\b${word}\\b`, "i"), `example still mentions ${word}`);
+  // visible text only: CSS and JS have words like --h-track that aren't about anyone
+  const text = readFileSync(join(dir, "index.html"), "utf8").replace(/<style>[\s\S]*?<\/style>|<script>[\s\S]*?<\/script>/g, "");
+  for (const [word, flags] of privateWords()) {
+    assert.doesNotMatch(text, new RegExp(`\\b${word}\\b`, flags), `example still mentions ${word}`);
   }
 });
 
