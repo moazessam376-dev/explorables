@@ -1,0 +1,34 @@
+/* micrograd-only styles: the nudge machine, the backprop game, topo lists, loss squares */
+/* machine */
+.knobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:520px){ .knobs{grid-template-columns:minmax(0,1fr)} }
+.knob{border:1px var(--line) var(--rule);border-radius:var(--r);padding:10px 12px;display:grid;gap:6px;transition:background .25s,border-color .25s}
+.knob.nudged{background:var(--nudge-soft);border-color:var(--nudge)}
+.knob .kh{display:flex;justify-content:space-between;align-items:baseline}
+.knob .kn{font-family:var(--f-display);font-style:italic;font-size:1.25rem}
+.knob output{font:600 .9rem var(--f-mono);color:var(--data)}
+.flowline{font:.9rem var(--f-mono);display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.flowline .v{color:var(--data);font-weight:600}
+.flowline .opb{padding:1px 7px;border:1px var(--line) var(--rule);border-radius:999px;color:var(--muted)}
+/* backprop game */
+.game{display:grid;gap:10px;background:var(--wash);border-radius:var(--r);padding:12px 14px}
+.game .q{font-weight:700}
+.game .eq{font:.86rem/1.6 var(--f-mono);overflow-x:auto;white-space:pre-wrap}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:600 .84rem var(--f-mono);padding:6px 12px;border-radius:var(--r);border:1.5px solid var(--rule);background:var(--panel);color:var(--ink);cursor:pointer}
+.opts button:hover{border-color:var(--ink)}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--neg);background:var(--neg-soft)}
+/* lists for topo */
+.lists{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:620px){ .lists{grid-template-columns:minmax(0,1fr)} }
+.lst{border:1px var(--line) var(--rule);border-radius:var(--r);padding:8px 10px;min-height:4.4em;font:.8rem/1.6 var(--f-mono)}
+.lst b{display:block;font:700 .7rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.lst .chip{display:inline-block;padding:0 6px;margin:2px 3px 2px 0;border-radius:var(--r);background:var(--wash)}
+.lst .chip.new{background:var(--nudge-soft)}
+/* loss squares */
+.sq-wrap{overflow-x:auto}
+.scale{width:100%;border-collapse:collapse;font-size:.92rem}
+.scale td,.scale th{padding:7px 10px;border-top:1px solid var(--rule);text-align:left}
+.scale th{font:700 .72rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.scale td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}

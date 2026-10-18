@@ -1,0 +1,115 @@
+/* Themes. The default is Field Manual, which follows the viewer's light/dark setting.
+   Picking a theme in the page sets data-skin on <html>; those blocks come last so they win.
+   Every theme keeps the same colour roles: --data (a value), --grad (a slope / gradient),
+   --nudge (the nudge h), --ok (downhill / positive), --neg (negative). */
+:root{
+  /* Field Manual · light (the default) */
+  --paper:#F6F8FB; --panel:#FFFFFF; --ink:#0E2A47; --muted:#4E6580; --rule:#C9D6E6; --wash:#E7EEF7;
+  --data:#1D5BD6; --grad:#DE4F27; --nudge:#7B3FB0; --ok:#2E7D32; --neg:#C62F45;
+  --data-soft:#E1EAFB; --grad-soft:#FCE6DE; --nudge-soft:#F0E5F8; --ok-soft:#E0F1E1; --neg-soft:#FBE1E5;
+  --stage:#F2F6FB; --gridline:#E3EBF5;
+  --top-bg:#0E2A47; --top-ink:#EAF1FA; --top-muted:#9FB4CC; --top-rule:#2C4A6E; --top-tl:#22416A; --top-field:#163759; --top-border:1px solid #0E2A47;
+  --f-display:"IBM Plex Mono", Consolas, "Courier New", monospace;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", Consolas, "Courier New", monospace;
+  --f-ar:"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --f-math:"IBM Plex Mono", Consolas, monospace; --var-style:italic;
+  --f-lead:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --lead-style:normal; --lead-weight:400;
+  --h-case:uppercase; --h-track:.02em; --h-scale:.86; --h-weight:600;
+  --r:0px; --rf:0px; --line:solid; --fig-bw:1.5px; --fig-bc:var(--ink);
+  --fig-label:block;
+  --paper-img:linear-gradient(var(--gridline) 1px, transparent 1px), linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  --paper-size:24px 24px;
+}
+/* Field Manual · dark, when the viewer's setting is dark and no theme was picked */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]):not([data-skin]){
+    --paper:#0A1626; --panel:#0F2036; --ink:#DCE8F5; --muted:#8FA7C2; --rule:#24405F; --wash:#132A45;
+    --data:#6EA8FF; --grad:#FF7A4D; --nudge:#C38CF2; --ok:#5DD27E; --neg:#FF6F80;
+    --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
+    --stage:#0C1C30; --gridline:#10233B;
+    --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
+    --fig-bc:#3A5F88;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]:not([data-skin]),
+:root[data-skin="field-dark"]{
+  --paper:#0A1626; --panel:#0F2036; --ink:#DCE8F5; --muted:#8FA7C2; --rule:#24405F; --wash:#132A45;
+  --data:#6EA8FF; --grad:#FF7A4D; --nudge:#C38CF2; --ok:#5DD27E; --neg:#FF6F80;
+  --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
+  --stage:#0C1C30; --gridline:#10233B;
+  --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
+  --fig-bc:#3A5F88;
+  color-scheme:dark;
+}
+:root[data-skin="field-light"]{ color-scheme:light; }
+
+/* Chalkboard: chalk on a green board */
+:root[data-skin="chalk"]{
+  --paper:#1D2A24; --panel:#22302A; --ink:#EEEDE6; --muted:#A9B5AC; --rule:#3A4C43; --wash:#2A3831;
+  --data:#9FD4F6; --grad:#F7B26A; --nudge:#F4A0C8; --ok:#B9E4A3; --neg:#FF9A8B;
+  --data-soft:#26404A; --grad-soft:#41372A; --nudge-soft:#42303B; --ok-soft:#2C4232; --neg-soft:#45302D;
+  --stage:#192420; --gridline:transparent;
+  --top-bg:#1A2520; --top-ink:#EEEDE6; --top-muted:#A9B5AC; --top-rule:#3A4C43; --top-tl:#30413A; --top-field:#22302A; --top-border:4px solid #6D5A3E;
+  --f-display:"Kalam", "Comic Neue", cursive;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", Consolas, monospace;
+  --f-ar:"Amiri", "Noto Naskh Arabic", serif;
+  --f-math:"Kalam", cursive; --var-style:normal;
+  --f-lead:"Kalam", cursive; --lead-style:normal; --lead-weight:400;
+  --h-case:none; --h-track:0; --h-scale:1.12; --h-weight:700;
+  --r:3px; --rf:3px; --line:dashed; --fig-bw:1.5px; --fig-bc:#56695E;
+  --fig-label:none;
+  --paper-img:radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.05), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(255,255,255,.035), transparent 50%);
+  --paper-size:auto;
+  color-scheme:dark;
+}
+
+/* Notebook: the first look, calm and bright (with a dark version) */
+:root[data-skin="notebook-light"], :root[data-skin="notebook-dark"]{
+  --f-display:"Literata", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", Consolas, monospace;
+  --f-ar:"Noto Naskh Arabic", "Segoe UI", Tahoma, serif;
+  --f-math:"Literata", Georgia, serif; --var-style:italic;
+  --f-lead:"Literata", Georgia, serif; --lead-style:normal; --lead-weight:400;
+  --h-case:none; --h-track:-.015em; --h-scale:1; --h-weight:700;
+  --r:7px; --rf:12px; --line:solid; --fig-bw:1px; --fig-bc:var(--rule);
+  --fig-label:none; --paper-img:none; --paper-size:auto;
+}
+:root[data-skin="notebook-light"]{
+  --paper:#F3F5F9; --panel:#FFFFFF; --ink:#131B27; --muted:#556175; --rule:#D6DCE6; --wash:#E8EDF4;
+  --data:#1F53C2; --grad:#C2531A; --nudge:#AD2C83; --ok:#1F7A4A; --neg:#C2344B;
+  --data-soft:#E2EAFB; --grad-soft:#FBE8DB; --nudge-soft:#F7E0EF; --ok-soft:#DFF2E7; --neg-soft:#F9E1E5;
+  --stage:#F7F9FC;
+  --top-bg:#F3F5F9; --top-ink:#131B27; --top-muted:#556175; --top-rule:#D6DCE6; --top-tl:#E2EAFB; --top-field:#FFFFFF; --top-border:1px solid #D6DCE6;
+  color-scheme:light;
+}
+:root[data-skin="notebook-dark"]{
+  --paper:#0E131B; --panel:#151C27; --ink:#E4E8EF; --muted:#9AA5B7; --rule:#29334A; --wash:#1C2534;
+  --data:#80A8FF; --grad:#FF9C5E; --nudge:#F27FC9; --ok:#5DD293; --neg:#FF7A8C;
+  --data-soft:#1A2745; --grad-soft:#3B2517; --nudge-soft:#3A1A31; --ok-soft:#173225; --neg-soft:#3A1820;
+  --stage:#111823;
+  --top-bg:#0E131B; --top-ink:#E4E8EF; --top-muted:#9AA5B7; --top-rule:#29334A; --top-tl:#1A2745; --top-field:#151C27; --top-border:1px solid #29334A;
+  color-scheme:dark;
+}
+
+/* Manim Night: 3Blue1Brown's black, blue, yellow and red */
+:root[data-skin="manim"]{
+  --paper:#0B0C10; --panel:#12141A; --ink:#ECEFF4; --muted:#8E95A5; --rule:#242833; --wash:#1A1D25;
+  --data:#58C4DD; --grad:#F4C542; --nudge:#FC6255; --ok:#83C167; --neg:#FF6B6B;
+  --data-soft:#11303A; --grad-soft:#3A3115; --nudge-soft:#3D1A18; --ok-soft:#1D3317; --neg-soft:#3A1717;
+  --stage:#07080B;
+  --top-bg:#0B0C10; --top-ink:#ECEFF4; --top-muted:#8E95A5; --top-rule:#242833; --top-tl:#1C2029; --top-field:#12141A; --top-border:1px solid #242833;
+  --f-display:"STIX Two Text", Georgia, serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", Consolas, monospace;
+  --f-ar:"Noto Naskh Arabic", "Segoe UI", Tahoma, serif;
+  --f-math:"STIX Two Text", Georgia, serif; --var-style:italic;
+  --f-lead:"STIX Two Text", Georgia, serif; --lead-style:italic; --lead-weight:500;
+  --h-case:none; --h-track:-.01em; --h-scale:1.04; --h-weight:500;
+  --r:4px; --rf:4px; --line:solid; --fig-bw:1px; --fig-bc:#1B1E27;
+  --fig-label:none; --paper-img:none; --paper-size:auto;
+  color-scheme:dark;
+}
