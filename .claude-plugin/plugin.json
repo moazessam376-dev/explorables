@@ -1,0 +1,16 @@
+{
+  "name": "explorables",
+  "version": "0.1.0",
+  "description": "Turn anything you're learning into an interactive companion page: plain-language re-explanations, 2D/3D pictures you control, and a follow-along that keeps pace with the lecture.",
+  "author": {
+    "name": "moazessam376-dev",
+    "url": "https://github.com/moazessam376-dev"
+  },
+  "homepage": "https://github.com/moazessam376-dev/explorables",
+  "repository": "https://github.com/moazessam376-dev/explorables",
+  "license": "MIT",
+  "keywords": ["learning", "education", "interactive", "visualization", "three.js", "youtube", "companion"],
+  "displayName": "Explorables",
+  "documentationUrl": "https://github.com/moazessam376-dev/explorables#readme",
+  "supportUrl": "https://github.com/moazessam376-dev/explorables/issues"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "explorables",
+  "description": "Explorables: interactive companion pages for anything you're learning.",
+  "owner": {
+    "name": "moazessam376-dev",
+    "url": "https://github.com/moazessam376-dev"
+  },
+  "plugins": [
+    {
+      "name": "explorables",
+      "source": "./",
+      "description": "Turn anything you're learning into an interactive companion page: plain-language re-explanations, 2D/3D pictures you control, and a follow-along that keeps pace with the lecture."
+    }
+  ]
+}
