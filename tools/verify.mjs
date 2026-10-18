@@ -4,7 +4,8 @@
 //   node tools/verify.mjs <pageDir> [--screens <dir>]
 //
 // Static checks always run: the plan is valid, the script parses, only allowlisted outside
-// files load, and every planned section, moment and simple #id target exists in the page.
+// files load, the page has <main> and <header> landmarks, every timed moment sits in one of its
+// own section's chapters, and every planned section, moment and simple #id target exists.
 // Browser checks run in headless Chrome or Edge when one is found: no console errors, every
 // anchor and action target resolves, every button can be clicked, every theme renders,
 // no sideways scroll at phone width, and the page survives storage being blocked.
@@ -13,7 +14,8 @@ import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { pathToFileURL, fileURLToPath } from "node:url";
-import { validatePlan } from "./plan.mjs";
+import { validatePlan, pageConfig } from "./plan.mjs";
+import { chapterAt } from "../lib/js/follow-core.js";
 import { findBrowser, launch, chromePathProblem } from "./cdp.mjs";
 
 const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
@@ -42,6 +44,22 @@ export function staticChecks(pageDir) {
   for (const m of html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)) if (m[1] !== THREE_URL) problems.push(`script from a host that isn't allowed: ${m[1]}`);
   for (const m of html.matchAll(/<link[^>]*\shref="(https?:[^"]+)"/g)) if (!/^https:\/\/fonts\.(googleapis|gstatic)\.com(\/|$)/.test(m[1])) problems.push(`stylesheet from a host that isn't allowed: ${m[1]}`);
   for (const m of html.matchAll(/<(img|iframe|video|audio|source|embed|object)[^>]*\ssrc="(https?:[^"]+)"/g)) problems.push(`outside ${m[1]} not allowed: ${m[2]}`);
+  // landmarks: screen readers jump by them
+  if (!/<main[\s>]/.test(html)) problems.push("the page has no <main> landmark (wrap the sections in <main>)");
+  if (!/<header[\s>]/.test(html)) problems.push("the page has no <header> landmark (the follow bar's <header class=\"top\">)");
+  // every timed moment sits inside one of its own section's chapters
+  if (plan.source && plan.source.kind === "video") {
+    const { chapters } = pageConfig(plan);
+    for (const s of plan.sections || []) {
+      if (!chapters.some(c => c[2] === s.id)) continue;
+      for (const m of s.moments || []) {
+        if (typeof m.t !== "number" || !chapters.length) continue;
+        if (m.t < chapters[0][0]) { problems.push(`moment ${m.t} of ${s.id} is before the first chapter (${chapters[0][0]})`); continue; }
+        const owner = chapters[chapterAt(chapters, m.t)][2];
+        if (owner !== s.id) problems.push(`moment ${m.t} of ${s.id} falls in a chapter of ${owner}, not of its own section`);
+      }
+    }
+  }
   // planned sections and moments exist
   const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   for (const s of plan.sections || []) {

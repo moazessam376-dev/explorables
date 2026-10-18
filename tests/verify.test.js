@@ -105,3 +105,27 @@ test("a CHROME_PATH that isn't a browser is named in the error", () => {
   assert.ok(r.stdout.includes(process.execPath), r.stdout);
   assert.notEqual(r.status, 0, r.stdout);
 });
+
+test("a page without a main landmark is reported", () => {
+  const dir = freshCopy("v-nomain");
+  const body = join(dir, "src/body.html");
+  writeFileSync(body, readFileSync(body, "utf8").replace(/<main([\s>])/, "<div$1").replace("</main>", "</div>"));
+  assert.equal(build(dir).status, 0);
+  const r = verify(dir, { EXPLORABLES_NO_BROWSER: "1" });
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /<main>/);
+});
+
+test("a moment that falls in another section's chapter is reported", () => {
+  const dir = freshCopy("v-outside", p => { p.sections[2].chapter = [30, "part b"]; });
+  const r = verify(dir, { EXPLORABLES_NO_BROWSER: "1" });
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /moment 40 of s-a .*s-b/);
+});
+
+test("a moment before the first chapter is reported", () => {
+  const dir = freshCopy("v-early", p => { p.sections[1].chapter = [20, "intro"]; });
+  const r = verify(dir, { EXPLORABLES_NO_BROWSER: "1" });
+  assert.equal(r.status, 1, r.stdout);
+  assert.match(r.stdout, /moment 10 of s-a .*before the first chapter/);
+});
