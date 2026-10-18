@@ -1,20 +1,27 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync, cpSync, rmSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { rng } from "../lib/js/core.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dir = join(root, "examples/micrograd");
+// the build and verify run on a copy in tests/.out, so the tracked page (and its .last-build
+// and .preview.html) are left alone
+const copy = join(root, "tests/.out/micrograd");
 const node = args => spawnSync(process.execPath, args, { encoding: "utf8", timeout: 240000 });
 
 test("the micrograd example builds and verifies", () => {
-  const b = node([join(root, "tools/build.mjs"), "page", dir]);
+  const tracked = join(dir, "index.html"), before = statSync(tracked).mtimeMs;
+  rmSync(copy, { recursive: true, force: true }); mkdirSync(copy, { recursive: true });
+  for (const f of ["plan.json", "src"]) cpSync(join(dir, f), join(copy, f), { recursive: true });
+  const b = node([join(root, "tools/build.mjs"), "page", copy]);
   assert.equal(b.status, 0, b.stderr);
-  const v = node([join(root, "tools/verify.mjs"), dir]);
+  const v = node([join(root, "tools/verify.mjs"), copy]);
   assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.equal(statSync(tracked).mtimeMs, before, "the test rebuilt the tracked examples/micrograd/index.html");
 });
 
 // the words to look for are personal themselves, so they live outside the repo: one per line in
