@@ -26,8 +26,9 @@ export function staticChecks(pageDir) {
   const problems = [];
   const plan = JSON.parse(read(join(pageDir, "plan.json")));
   problems.push(...validatePlan(plan).map(p => "plan: " + p));
-  const file = join(pageDir, "index.html");
-  if (!existsSync(file)) return { plan, problems: [...problems, "index.html is missing: run build first"] };
+  const last = join(pageDir, ".last-build");
+  const file = existsSync(last) ? read(last).trim() : join(pageDir, "index.html");
+  if (!existsSync(file)) return { plan, problems: [...problems, "the built page is missing: run build first"] };
   const html = read(file);
   // the inline script parses
   const js = html.split("<script>\n").pop().split("</script>")[0];

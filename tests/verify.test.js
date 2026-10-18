@@ -34,6 +34,17 @@ test("static checks run when no browser is found", () => {
   assert.equal(r.status, 0, r.stdout + r.stderr);
 });
 
+test("verify finds a page that was built to a custom --out path", () => {
+  const dir = join(out, "v-out");
+  rmSync(dir, { recursive: true, force: true });
+  cpSync(join(root, "tests/fixtures/mini-page"), dir, { recursive: true });
+  const target = join(out, "v-out-built.html");
+  assert.equal(node([join(root, "tools/build.mjs"), "page", dir, "--out", target]).status, 0);
+  const r = verify(dir, { EXPLORABLES_NO_BROWSER: "1" });
+  assert.match(r.stdout, /static: ok/);
+  assert.equal(r.status, 0, r.stdout);
+});
+
 test("reports missing anchor and missing action target", () => {
   const dir = freshCopy("v-missing", p => {
     p.sections[1].moments[1].anchor = "#nope";

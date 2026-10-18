@@ -63,6 +63,8 @@ export function buildPage(pageDir, { lib = join(ROOT, "lib"), out } = {}) {
   const file = out || join(pageDir, "index.html");
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, html);
+  // remember where the page went, so verify finds it after a --out build
+  writeFileSync(join(pageDir, ".last-build"), file);
   // the same page with the skeleton the artifact host adds, for opening locally
   writeFileSync(join(pageDir, ".preview.html"),
     '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
