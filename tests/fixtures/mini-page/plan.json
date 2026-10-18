@@ -1,0 +1,18 @@
+{
+  "id": "mini",
+  "title": "Mini",
+  "subtitle": "Test lecture",
+  "source": { "kind": "video", "provider": "youtube", "id": "abc123", "duration": 300 },
+  "refs": { "k": "abc123" },
+  "mustRead": ["s-pre"],
+  "sections": [
+    { "id": "s-pre", "title": "Before you press play", "pictures": [{ "id": "p0", "proves": "the loop exists" }], "moments": [] },
+    { "id": "s-a", "title": "Part A", "chapter": [0, "intro"],
+      "pictures": [{ "id": "pa", "proves": "a button changes a readout" }],
+      "moments": [ { "t": 10, "text": "Start of part A." }, { "t": 40, "text": "The nudge.", "anchor": "#pa-out", "action": ["#pa-go"] } ] },
+    { "id": "s-b", "title": "Part B", "chapter": [120, "part b"],
+      "pictures": [{ "id": "pb", "proves": "a second figure" }],
+      "moments": [ { "t": 120, "text": "Part B starts.", "anchor": "means:2" } ] }
+  ],
+  "intro": { "pa": ["#pa-go"] }
+}

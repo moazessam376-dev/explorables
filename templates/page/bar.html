@@ -1,0 +1,51 @@
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand">{{title}} <small>{{subtitle}}</small></div>
+      <div class="follow" id="follow" role="group" aria-label="Follow along with the source">
+        <select class="skin" id="skin" aria-label="Theme">
+          <option value="auto">Field Manual (auto)</option>
+          <option value="field-light">Field Manual · light</option>
+          <option value="field-dark">Field Manual · dark</option>
+          <option value="chalk">Chalkboard</option>
+          <option value="notebook-light">Notebook · light</option>
+          <option value="notebook-dark">Notebook · dark</option>
+          <option value="manim">Manim Night</option>
+        </select>
+        <button class="btn ghost sm fl-video" type="button" id="fl-back" title="Back 10 seconds (j)">−10s</button>
+        <button class="clock fl-video" type="button" id="fl-clock" title="Click to type an exact time">0:00</button>
+        <form id="fl-form" hidden autocomplete="off"><input id="fl-input" inputmode="numeric" aria-label="Video time, like 20:15" placeholder="mm:ss"></form>
+        <button class="btn ghost sm fl-video" type="button" id="fl-fwd" title="Forward 10 seconds (l)">+10s</button>
+        <select id="fl-speed" class="fl-video" aria-label="Playback speed">
+          <option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option>
+        </select>
+        <button class="btn sm fl-video" type="button" id="fl-last" hidden title="Jump back to where you stopped last time and keep following">▶ Resume</button>
+        <button class="btn sm fl-video" type="button" id="fl-play" title="Start or pause following (k)">▶ Follow</button>
+      </div>
+    </div>
+    <div class="tlbox">
+      <div class="timeline" id="timeline" aria-label="Chapters. Click to set the time."></div>
+      <div class="pin" id="pin"></div>
+    </div>
+    <div class="nowline">
+      <span id="fl-now" aria-live="polite"></span>
+      <span class="nowctl">
+        <button class="btn ghost sm" type="button" id="fl-resume" hidden>↓ Jump to now</button>
+        <label class="chk fl-video" title="Scroll to what the lecture is on, but never while you're busy on the page"><input type="checkbox" id="fl-auto" checked> auto-scroll</label>
+        <label class="chk fl-video" title="Pictures act out what the lecture is doing, and loops start the first time you reach them"><input type="checkbox" id="fl-autoplay" checked> auto-play</label>
+        <label class="chk" title="Mark a section done when the follow-along moves past it"><input type="checkbox" id="fl-autodone"> auto-complete</label>
+      </span>
+    </div>
+  </div>
+</header>
+
+<div class="preread" id="preread" hidden role="dialog" aria-labelledby="pr-t">
+  <div class="pr-box">
+    <b id="pr-t">Before you start: {{mustReadTitle}}</b>
+    <p>This part sets up the context for everything after it, so it's worth reading first.</p>
+    <div class="controls">
+      <button class="btn" type="button" id="pr-read">Read it first</button>
+      <button class="btn ghost" type="button" id="pr-skip">I've read it, start</button>
+    </div>
+  </div>
+</div>
