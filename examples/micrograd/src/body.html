@@ -1,0 +1,1429 @@
+<main class="wrap">
+
+<div class="intro">
+  <div class="eyebrow">Keep this open next to the video</div>
+  <h1>Building micrograd, <em>one picture at a time</em></h1>
+  <p>Each section below matches one chapter of Karpathy's lecture. Every section has a picture you can turn, drag and change, the same idea in different words, why it matters, and the English math words next to the terms in another language (this example shows Arabic school terms).</p>
+  <div class="legend" aria-label="Colour key">
+    <span><i class="sw" style="background:var(--data)"></i><b class="c-data">blue</b> = a value (<code>data</code>)</span>
+    <span><i class="sw" style="background:var(--grad)"></i><b class="c-grad">orange</b> = a slope / gradient (<code>grad</code>)</span>
+    <span><i class="sw" style="background:var(--nudge)"></i><b class="c-nudge">pink</b> = the tiny nudge <var>h</var></span>
+    <span><i class="sw" style="background:var(--ok)"></i><b class="c-ok">green</b> = downhill, or a positive weight</span>
+    <span><i class="sw" style="background:var(--neg)"></i><b class="c-neg">red</b> = a negative weight</span>
+  </div>
+  <ul class="howto">
+    <li><b>Follow along (optional):</b> press <b>▶ Follow</b> at the same moment you press play on YouTube. The page keeps time with the video and scrolls itself to whatever Karpathy is talking about. It starts from the part you're reading. If you're out of sync, click the clock to type the exact time, click the timeline, or use −10s / +10s. The page can't see your video player, so pause here when you pause there (the <kbd>k</kbd> key works here too, like on YouTube). It only moves when Karpathy reaches a new moment that isn't already on your screen, and never while you're reading or playing with a picture here. Anything it skipped shows up as a "Jump to" button. Untick <b>auto-scroll</b> to keep the clock without any scrolling.</li>
+    <li><b>3D pictures:</b> drag to turn them. Click once inside, then scroll to zoom. Double-click puts the camera back.</li>
+    <li><b>Before a chapter:</b> read the bold first line and play with the picture for a minute.</li>
+    <li><b>While watching:</b> "Moments to watch" tells you what is on his screen at each time. Click a time to open the video there.</li>
+    <li><b>After a chapter:</b> answer the check question out loud before you open it.</li>
+  </ul>
+  <nav class="partnav" aria-label="Parts">
+    <a href="#s-big">Start: the big loop</a>
+    <a href="#part1">Part 1 · 0:00 – 32:10</a>
+    <a href="#part2">Part 2 · 32:10 – end</a>
+  </nav>
+</div>
+
+<!-- ================= BIG PICTURE ================= -->
+<section class="st" id="s-big">
+  <div class="st-head">
+    <div class="st-meta"><span class="time" style="background:var(--grad)">Before you press play</span><span class="mustread">Must-read · 2 minutes</span><span>Joins the two 3Blue1Brown videos to this lecture</span></div>
+    <h2>The one loop behind all of it</h2>
+    <p class="lead"><b>3Blue1Brown showed you what a network is and how it learns. Karpathy now builds the missing part: the machine that works out the slopes.</b></p>
+  </div>
+
+  <ol class="bridge">
+    <li><span class="n">1</span><p><span class="src">3Blue1Brown, Chapter 1 <a class="xref" data-v="c1" data-t="917"><span class="who">3B1B 1 ·</span> 15:17</a></span>A neural network is just a function. Numbers go in, numbers come out, and about 13,000 knobs (weights and biases) decide what happens in between.</p></li>
+    <li><span class="n">2</span><p><span class="src">3Blue1Brown, Chapter 2 <a class="xref" data-v="c2" data-t="551"><span class="who">3B1B 2 ·</span> 9:11</a></span>Learning means turning those knobs so the cost (how wrong the network is) gets smaller. To know which way to turn each knob, you need its slope. Grant says the method that computes all those slopes is called <b>backpropagation</b>, and he leaves it for a later video.</p></li>
+    <li class="k"><span class="n">3</span><p><span class="src">Karpathy, this lecture <a class="xref" data-v="k" data-t="25"><span class="who">AK ·</span> 0:25</a></span>Karpathy builds backpropagation from zero, in about 100 lines of Python. That small library is <b>micrograd</b>. At the end of the lecture he uses it to train a tiny network.</p></li>
+  </ol>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="strip" id="loop-strip" aria-label="The training loop">
+      <span class="s fwd" data-k="fwd">1 · Forward pass<small>make a prediction</small></span><span class="ar2">→</span>
+      <span class="s loss" data-k="loss">2 · Loss<small>one number: how wrong?</small></span><span class="ar2">→</span>
+      <span class="s bwd mg" data-k="bwd">3 · Backward pass<small>a slope for every weight</small></span><span class="ar2">→</span>
+      <span class="s upd" data-k="upd">4 · Update<small>step downhill</small></span><span class="ar2">↺ repeat</span>
+    </div>
+    <div class="stage tall" id="land"></div>
+    <div class="controls">
+      <button class="btn" id="land-step" type="button">One training step</button>
+      <button class="btn ghost" id="land-run" type="button">Run 15 steps</button>
+      <button class="btn ghost" id="land-reset" type="button">Reset</button>
+      <span class="spacer"></span>
+      <span class="lbltxt" id="land-lr-lab">Step size</span>
+      <div class="seg" role="group" aria-labelledby="land-lr-lab" id="land-lr">
+        <button type="button" data-lr="0.12" aria-pressed="false">0.12 tiny</button>
+        <button type="button" data-lr="0.5" aria-pressed="true">0.5 good</button>
+        <button type="button" data-lr="1.6" aria-pressed="false">1.6 too big</button>
+      </div>
+    </div>
+    <div class="controls">
+      <label class="chk"><input type="checkbox" id="land-arrows" checked> show the slope arrows</label>
+      <label class="chk"><input type="checkbox" id="land-contours" checked> show contour lines</label>
+    </div>
+    <dl class="readout" id="land-read"></dl>
+    <figcaption>Two weights, <var>w</var>₁ and <var>w</var>₂, and the loss for every pair of values: this is 3Blue1Brown's hill at <a class="xref" data-v="c2" data-t="442"><span class="who">3B1B 2 ·</span> 7:22</a>, made touchable. <b>Click anywhere on the surface</b> to drop the ball there. The <b class="c-grad">orange arrow</b> is the gradient (straight uphill). The <b class="c-ok">green arrow</b> is minus the gradient (straight downhill), and each step moves the ball along it. Try both valleys, then try "too big".</figcaption>
+  </figure>
+
+  <h3>What it means</h3>
+  <div class="prose">
+    <p>A real network has thousands or millions of weights, not two. The loop is the same; it just runs on every weight at once:</p>
+    <ul>
+      <li><b>Forward pass:</b> push the input through the network's math and get a prediction.</li>
+      <li><b>Loss:</b> compare the prediction with the right answer and squeeze "how wrong" into one number. That's the height of the ball.</li>
+      <li><b>Backward pass:</b> for every weight, find the slope of the loss. If I nudge this weight up a tiny bit, does the loss go up or down, and by how much? The two slopes together are the orange arrow. <span class="c-grad">This is what micrograd computes.</span></li>
+      <li><b>Update:</b> move every weight a small step against its slope, which is downhill. Then repeat.</li>
+    </ul>
+    <p>The step size is called the <b>learning rate</b>. Too small and learning is slow. Too big and the ball jumps over the valley and bounces around. Karpathy hits exactly this at <a class="xref" data-v="k" data-t="7590"><span class="who">AK ·</span> 2:06:30</a>.</p>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>Any model you train later runs this exact loop. Say you train a small GPT of your own: the forward pass reads some text and guesses the next word. The loss says how wrong that guess was. The backward pass finds the slope for each of millions of weights. The update nudges them all. micrograd is the same loop, small enough that you can see every number.</p>
+    <p>That's also why the lecture starts with derivatives (8:08). A slope <i>is</i> a derivative, so before he can compute millions of them he makes sure you can feel what one of them means.</p>
+  </div>
+
+  <h3>Where the lecture's chapters sit on the loop</h3>
+  <dl class="readout">
+    <dt class="c-data">Forward</dt><dd>19:09 Value objects · 52:52 a neuron · 1:43:55 the MLP network</dd>
+    <dt>Loss</dt><dd>1:51:04 tiny dataset and loss</dd>
+    <dt class="c-grad">Backward</dt><dd>8:08 derivatives · 32:10 backprop by hand · 1:09:02 to 1:27:05 making it automatic</dd>
+    <dt class="c-nudge">Update</dt><dd>51:10 one optimization step · 2:01:12 the training loop</dd>
+  </dl>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>In the loop, what goes wrong if you skip the backward pass?</summary>
+    <div class="ans">You would still know <i>how wrong</i> you are (the loss, the ball's height), but not <i>which way</i> to turn each weight. The update step has no arrow to follow.</div></details>
+  <details class="check"><summary>Drop the ball near the top between the two valleys. Why can two starting points end in different valleys?</summary>
+    <div class="ans">The slope only knows about the ground right under the ball. Gradient descent always walks to the nearest low point it can reach downhill, which may not be the lowest one overall. 3Blue1Brown says the same at 6:20 in Chapter 2.</div></details>
+</section>
+
+<div class="part-head" id="part1">
+  <div class="eyebrow">Part 1 · 0:00 – 32:10</div>
+  <h2>Derivatives, and numbers that remember</h2>
+  <p>What a slope means, how to measure it, and the Value object that records every operation.</p>
+</div>
+
+<!-- ================= S1 OVERVIEW ================= -->
+<section class="st" id="s-overview">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="25">▶ 0:25 – 8:08</a><span>Chapter 2 · "micrograd overview"</span></div>
+    <h2>What micrograd is</h2>
+    <p class="lead"><b>micrograd keeps a record of every + and × you do, so that afterwards it can work out how much each input affected the final answer.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="stage" id="g3-over"></div>
+    <div class="sliders" id="g3-over-sl">
+      <div class="slider"><label for="ov-a">a</label><input type="range" id="ov-a" min="-4" max="4" step="0.5" value="2"><output>2.0</output></div>
+      <div class="slider"><label for="ov-b">b</label><input type="range" id="ov-b" min="-4" max="4" step="0.5" value="-3"><output>-3.0</output></div>
+      <div class="slider"><label for="ov-c">c</label><input type="range" id="ov-c" min="-10" max="10" step="1" value="10"><output>10.0</output></div>
+      <div class="slider"><label for="ov-f">f</label><input type="range" id="ov-f" min="-3" max="3" step="0.5" value="-2"><output>-2.0</output></div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="ov-fwd" type="button">1 · Forward pass</button>
+      <button class="btn" id="ov-bwd" type="button">2 · Backward pass</button>
+      <button class="btn ghost" id="ov-reset" type="button">Reset to Karpathy's numbers</button>
+    </div>
+    <dl class="readout" id="ov-read"></dl>
+    <figcaption>The small expression Karpathy builds at 28:01: <var>L</var> = (<var>a</var>·<var>b</var> + <var>c</var>)·<var>f</var>. Each box has two bars. The <b class="c-data">blue bar</b> is the value (tall means big, below the floor means negative). The <b class="c-grad">orange bar</b> is the gradient: how strongly <var>L</var> reacts to that box. Run the forward pass, then the backward pass, then move the sliders and watch both kinds of bar change. You will compute these exact orange numbers by hand at 32:10.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><b>Autograd</b> is short for "automatic gradient". You write normal math, and the library works out the slopes for you.</li>
+      <li><b>Backpropagation</b> is how it does that: start at the final output and walk backwards through the expression, one small operation at a time.</li>
+      <li>When he says <code>a.grad</code> is 138, he means: if you nudge <var>a</var> up a tiny bit, <var>g</var> goes up about 138 times as much. It's the same slope as in 3Blue1Brown's Chapter 2, for one input.</li>
+      <li>"Neural networks are just mathematical expressions." The inputs are the data and the weights. The output is the prediction, or the loss. So a tool that finds slopes for any expression can also train a network.</li>
+      <li>micrograd works on single numbers (<b>scalars</b>). PyTorch packs thousands of numbers into grids called <b>tensors</b> so the computer can process them all at the same time. The math does not change, only the speed.</li>
+    </ul>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>Everything after this lecture (makemore, GPT, any model you train) uses PyTorch's autograd. That is this same engine, built for speed. Once you have built micrograd, <code>loss.backward()</code> in PyTorch will never feel like magic.</p>
+    <p>Links: the network as one big function <a class="xref" data-v="c1" data-t="917"><span class="who">3B1B 1 ·</span> 15:17</a> · the gradient as one arrow for every weight <a class="xref" data-v="c2" data-t="520"><span class="who">3B1B 2 ·</span> 8:40</a></p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <div class="words">
+    <div class="w"><span class="en">autograd</span><span class="ar" lang="ar">الاشتقاق التلقائي</span><span class="mn">automatic gradient: the computer finds the derivatives for you</span></div>
+    <div class="w"><span class="en">gradient</span><span class="ar" lang="ar">التدرّج (متجه الميول)</span><span class="mn">the list of slopes, one per input</span></div>
+    <div class="w"><span class="en">backpropagation</span><span class="ar" lang="ar">الانتشار العكسي</span><span class="mn">computing those slopes by walking backwards from the output</span></div>
+    <div class="w"><span class="en">forward pass</span><span class="ar" lang="ar">التمرير الأمامي</span><span class="mn">computing the output from the inputs, left to right</span></div>
+    <div class="w"><span class="en">expression</span><span class="ar" lang="ar">مقدار جبري</span><span class="mn">a formula built from numbers and operations, like <code>a*b + c</code></span></div>
+    <div class="w"><span class="en">scalar</span><span class="ar" lang="ar">كمية قياسية</span><span class="mn">one single number</span></div>
+    <div class="w"><span class="en">tensor</span><span class="ar" lang="ar">موتِّر</span><span class="mn">a grid of numbers (a list, a table, or more dimensions)</span></div>
+    <div class="w"><span class="en">loss function</span><span class="ar" lang="ar">دالة الخسارة</span><span class="mn">one number that says how wrong the network is. 3B1B calls it the cost.</span></div>
+    <div class="w"><span class="en">weights, bias</span><span class="ar" lang="ar">الأوزان، الانحياز</span><span class="mn">the knobs the network learns</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="25">0:25</a><span>micrograd is an autograd engine: it implements backpropagation.</span></li>
+    <li><a data-v="k" data-t="95">1:35</a><span>The README example: <var>a</var> and <var>b</var> wrapped in <code>Value</code> and built into a long expression.</span></li>
+    <li><a data-v="k" data-t="166">2:46</a><span>The forward pass: <code>g.data</code> is 24.7.</span></li>
+    <li><a data-v="k" data-t="201">3:21</a><span><code>g.backward()</code> walks backwards and applies the chain rule.</span></li>
+    <li><a data-v="k" data-t="237">3:57</a><span><code>a.grad</code> = 138: nudge <var>a</var> up and <var>g</var> grows with slope 138.</span></li>
+    <li><a data-v="k" data-t="264">4:24</a><span>"Neural networks are just mathematical expressions."</span></li>
+    <li><a data-v="k" data-t="334">5:34</a><span>Scalars and tensors: tensors are only for speed.</span></li>
+    <li><a data-v="k" data-t="405">6:45</a><span>The whole library is two files: <code>engine.py</code> (about 100 lines) and <code>nn.py</code>.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>If <code>a.grad</code> were −5, what happens to the output when you nudge <var>a</var> up a tiny bit?</summary>
+    <div class="ans">The output goes <b>down</b>, about 5 times as much as the nudge. The sign says the direction, the size says how strongly.</div></details>
+  <details class="check"><summary>In the picture, set <var>f</var> to 0. Why do all the orange bars except <var>f</var>'s and <var>L</var>'s disappear?</summary>
+    <div class="ans"><var>L</var> = <var>d</var> × <var>f</var>. If <var>f</var> is 0, then <var>L</var> is 0 whatever <var>d</var> is, so nudging <var>a</var>, <var>b</var>, <var>c</var>, <var>e</var> or <var>d</var> can't change <var>L</var>. Zero effect means zero gradient.</div></details>
+</section>
+
+<!-- ================= S2 DERIVATIVE ================= -->
+<section class="st" id="s-deriv">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="488">▶ 8:08 – 14:12</a><span>Chapter 3 · "derivative of a simple function with one input"</span></div>
+    <h2>The derivative: how much does the output react?</h2>
+    <p class="lead"><b>Push the input a tiny bit, measure how much the output moves, then divide by the push. That ratio is the derivative, which is the slope.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="two">
+      <svg id="dv-main" viewBox="0 0 520 330" role="img" aria-label="The parabola f of x equals 3 x squared minus 4 x plus 5. Drag the blue point. The pink run is h and the orange line is the measured slope."></svg>
+      <div style="display:grid;gap:6px;min-width:0">
+        <svg id="dv-zoom" viewBox="0 0 240 240" role="img" aria-label="Zoomed view around x. The pink run is h and the orange rise is f of x plus h minus f of x."></svg>
+        <div style="font-size:.78rem;color:var(--muted)">Zoomed in so the gap <var>h</var> always fills the box. The smaller <var>h</var> gets, the straighter the curve looks.</div>
+      </div>
+    </div>
+    <div class="slider"><label for="dv-x">x</label><input type="range" id="dv-x" min="-5" max="5" step="0.05" value="3"><output id="dv-x-o">3.0</output></div>
+    <div class="slider"><label for="dv-h" class="c-nudge">h</label><input type="range" id="dv-h" min="-15" max="0" step="0.25" value="-3"><output id="dv-h-o">0.001</output></div>
+    <div class="controls">
+      <span class="lbltxt">Karpathy's points:</span>
+      <button class="btn ghost sm" type="button" data-x="3">x = 3</button>
+      <button class="btn ghost sm" type="button" data-x="-3">x = −3</button>
+      <button class="btn ghost sm" type="button" data-x="0.6666666666666666">x = 2/3</button>
+      <span class="spacer"></span>
+      <button class="btn ghost sm" type="button" id="dv-tiny">h = 0.000000000000001</button>
+    </div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="dv-shrink">▶ Shrink h</button>
+      <button class="btn sm" type="button" id="dv-sweep">▶ Slide x across</button>
+      <span class="lbltxt">or drag the blue point on the curve</span>
+    </div>
+    <dl class="readout" id="dv-read"></dl>
+    <div class="note" id="dv-note"></div>
+    <p class="figtitle">The slopes you've measured, plotted</p>
+    <svg id="dv-slopes" viewBox="0 0 520 200" role="img" aria-label="Every slope measured so far, plotted against x. They line up on the straight line 6x minus 4, the derivative."></svg>
+    <div class="controls">
+      <label class="chk"><input type="checkbox" id="dv-showd"> show the derivative line <var>f</var>′(<var>x</var>) = 6<var>x</var> − 4</label>
+      <button class="btn ghost sm" type="button" id="dv-clear">Clear the dots</button>
+    </div>
+    <figcaption>Every time <var>x</var> moves, the slope you measured is dropped as an orange dot below. Press "Slide x across" and the dots line up on a straight line. That line is a new function made of slopes: the <b>derivative</b>. These are real 64-bit floating-point results, the same kind of number Python uses, so they match your notebook digit for digit.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <p><var>f</var>(<var>x</var>) = 3<var>x</var>² − 4<var>x</var> + 5 is a made-up function. Nothing about it is special; it's just a curve to practise on. At <var>x</var> = 3: 3·9 − 12 + 5 = <b>20</b>.</p>
+    <p>He does not find the derivative with the algebra rules from school, because nobody can do that for a network with thousands of terms. He <b>measures</b> it instead:</p>
+    <ul>
+      <li>Nudge: <var>x</var> = 3 becomes 3.001 (<span class="c-nudge"><var>h</var> = 0.001</span>).</li>
+      <li>Measure: <var>f</var>(3.001) = 20.014003, so the output rose by <span class="c-grad">0.014003</span>.</li>
+      <li>Divide: 0.014003 ÷ 0.001 = <b>14.003</b>. That's very close to the true slope 6·3 − 4 = <b>14</b>.</li>
+    </ul>
+    <p>The <b>sign</b> is the first thing to read. Positive: moving right goes uphill. Negative: moving right goes downhill. Zero: flat, the bottom of the valley.</p>
+    <p>Why not make <var>h</var> as small as possible? A computer keeps about 16 significant digits. When <var>h</var> gets very small, the change in <var>f</var> is lost in rounding and the answer turns into garbage. Press the "h = 0.000000000000001" button to see it happen.</p>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>This number is what learning runs on. 3Blue1Brown <a class="xref" data-v="c2" data-t="351"><span class="who">3B1B 2 ·</span> 5:51</a>: "if the slope is positive, shift left; if negative, shift right." The green "downhill" arrow in the picture is exactly that rule. Later, <var>x</var> will be a weight and <var>f</var> will be the loss.</p>
+    <p>The trick of nudging and measuring has a name: a <b>numerical gradient</b>. Karpathy keeps using it to double-check his answers. At 37:52 he calls it a "gradient check".</p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <table class="notation">
+    <thead><tr><th>Karpathy writes</th><th>In another language (Arabic)</th></tr></thead>
+    <tbody>
+      <tr><td><var>f</var>(<var>x</var>) = 3<var>x</var>² − 4<var>x</var> + 5</td><td class="ar" lang="ar">د(س) = ٣س<sup>٢</sup> − ٤س + ٥</td></tr>
+      <tr><td><var>f</var>′(<var>x</var>) = lim<sub><var>h</var>→0</sub> [<var>f</var>(<var>x</var>+<var>h</var>) − <var>f</var>(<var>x</var>)] / <var>h</var></td><td class="ar" lang="ar">دَ(س) = نهـا<sub>هـ←٠</sub> [د(س+هـ) − د(س)] ÷ هـ</td></tr>
+      <tr><td><var>f</var>′(<var>x</var>) = 6<var>x</var> − 4</td><td class="ar" lang="ar">دَ(س) = ٦س − ٤</td></tr>
+      <tr><td><var>dy</var>/<var>dx</var> (said "d y by d x")</td><td class="ar" lang="ar">دص / دس</td></tr>
+    </tbody>
+  </table>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">derivative</span><span class="ar" lang="ar">المشتقة</span><span class="mn">the slope at one point: how fast the output changes</span></div>
+    <div class="w"><span class="en">slope</span><span class="ar" lang="ar">الميل</span><span class="mn">rise ÷ run</span></div>
+    <div class="w"><span class="en">rise over run</span><span class="ar" lang="ar">التغير الرأسي ÷ التغير الأفقي</span><span class="mn">how far up, divided by how far across</span></div>
+    <div class="w"><span class="en">function</span><span class="ar" lang="ar">الدالة</span><span class="mn">a rule: give it an input, it gives one output</span></div>
+    <div class="w"><span class="en">parabola, quadratic</span><span class="ar" lang="ar">القطع المكافئ، دالة تربيعية</span><span class="mn">the U-shaped curve of an <var>x</var>² function</span></div>
+    <div class="w"><span class="en">tangent line</span><span class="ar" lang="ar">المماس</span><span class="mn">the straight line that just touches the curve at one point</span></div>
+    <div class="w"><span class="en">limit</span><span class="ar" lang="ar">النهاية</span><span class="mn">"what this gets closer and closer to" as <var>h</var> shrinks towards 0</span></div>
+    <div class="w"><span class="en">rate of change</span><span class="ar" lang="ar">معدل التغير</span><span class="mn">another name for the derivative</span></div>
+    <div class="w"><span class="en">floating point</span><span class="ar" lang="ar">الفاصلة العائمة</span><span class="mn">how computers store decimals, with about 16 digits of precision</span></div>
+    <div class="w"><span class="en">numerical / analytical</span><span class="ar" lang="ar">عددي / تحليلي</span><span class="mn">found by measuring / found with algebra rules</span></div>
+  </div>
+  <h3>His English, decoded</h3>
+  <ul class="phrases">
+    <li><b>nudge, bump, wiggle</b><span>all mean "change it by a tiny amount". Not math terms, just everyday words.</span></li>
+    <li><b>sensitivity</b><span>how strongly the output reacts to the input. A big slope means very sensitive.</span></li>
+    <li><b>converge</b><span>get closer and closer to one value.</span></li>
+    <li><b>normalize by the run</b><span>divide by <var>h</var>, so the answer doesn't depend on how big the nudge was.</span></li>
+  </ul>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="488">8:08</a><span><var>f</var>(<var>x</var>) = 3<var>x</var>² − 4<var>x</var> + 5, and <var>f</var>(3.0) = 20.</span></li>
+    <li><a data-v="k" data-t="558">9:18</a><span>The parabola plotted with <var>x</var> from −5 to 5 in steps of 0.25 (the picture above).</span></li>
+    <li><a data-v="k" data-t="594">9:54</a><span>Why nobody writes out a network's derivative by hand.</span></li>
+    <li><a data-v="k" data-t="629">10:29</a><span>The definition on Wikipedia: the limit as <var>h</var> goes to 0.</span></li>
+    <li><a data-v="k" data-t="699">11:39</a><span>Nudging <var>x</var> = 3 by 0.001: will <var>f</var> go above or below 20?</span></li>
+    <li><a data-v="k" data-t="724">12:04</a><span>Rise over run: divide by <var>h</var>.</span></li>
+    <li><a data-v="k" data-t="759">12:39</a><span>Too many zeros in <var>h</var> and floating point breaks.</span></li>
+    <li><a data-v="k" data-t="778">12:58</a><span>Slope at 3 is 14, checked with 6<var>x</var> − 4.</span></li>
+    <li><a data-v="k" data-t="788">13:08</a><span>At <var>x</var> = −3 the slope is negative: −22.</span></li>
+    <li><a data-v="k" data-t="817">13:37</a><span>At <var>x</var> = 2/3 the slope is 0: the bottom.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Without the picture: at <var>x</var> = −3, does <var>f</var> go up or down when you push <var>x</var> to the right? What does that say about the slope?</summary>
+    <div class="ans">Down. At −3 you're on the left wall of the U, so moving right goes downhill. That means the slope is negative (it's −22).</div></details>
+  <details class="check"><summary>At <var>x</var> = 2/3 the slope is 0. Why will that kind of point matter so much later?</summary>
+    <div class="ans">It's the bottom of the valley. Nudging <var>x</var> barely changes <var>f</var>. If <var>f</var> were the loss, that's exactly the spot training is trying to reach.</div></details>
+</section>
+
+<!-- ================= S3 MULTI ================= -->
+<section class="st" id="s-multi">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="852">▶ 14:12 – 19:09</a><span>Chapter 4 · "derivative of a function with multiple inputs"</span></div>
+    <h2>Many inputs: wiggle one at a time</h2>
+    <p class="lead"><b>With three inputs you ask the same question three times: hold two still, nudge one, measure.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="knobs">
+      <div class="knob" id="k-a"><div class="kh"><span class="kn">a</span><output id="m-a-o">2.0</output></div><input type="range" id="m-a" min="-5" max="5" step="0.5" value="2" aria-label="a"></div>
+      <div class="knob" id="k-b"><div class="kh"><span class="kn">b</span><output id="m-b-o">-3.0</output></div><input type="range" id="m-b" min="-5" max="5" step="0.5" value="-3" aria-label="b"></div>
+      <div class="knob" id="k-c"><div class="kh"><span class="kn">c</span><output id="m-c-o">10.0</output></div><input type="range" id="m-c" min="-10" max="10" step="1" value="10" aria-label="c"></div>
+    </div>
+    <div class="flowline" aria-live="polite"><span><var>a</var> × <var>b</var> =</span><span class="v" id="m-ab">-6.0</span><span class="opb">+ <var>c</var></span><span>→ <var>d</var> =</span><span class="v" id="m-d">4.0</span></div>
+    <div class="stage" id="saddle"></div>
+    <div class="controls">
+      <label class="chk"><input type="checkbox" id="sd-slices" checked> slices through the point</label>
+      <label class="chk"><input type="checkbox" id="sd-arrow" checked> gradient arrow</label>
+      <label class="chk"><input type="checkbox" id="sd-plane"> tangent plane</label>
+    </div>
+    <div class="controls">
+      <span class="lbltxt">Run his cell with <code>h = 0.0001</code>:</span>
+      <button class="btn sm" type="button" data-nudge="a">Nudge a</button>
+      <button class="btn sm" type="button" data-nudge="b">Nudge b</button>
+      <button class="btn sm" type="button" data-nudge="c">Nudge c</button>
+    </div>
+    <pre class="nb" id="m-print" aria-live="polite"><span class="k"># press a Nudge button</span></pre>
+    <figcaption>The surface is every value of <var>d</var> = <var>a</var>·<var>b</var> + <var>c</var>: <var>a</var> runs left–right, <var>b</var> runs front–back, height is <var>d</var>. <b>Drag the blue ball</b> across the surface, or use the sliders. Freezing <var>b</var> and moving only <var>a</var> means walking along one slice of the surface. That slice is a straight line whose slope is <var>b</var>. The other slice has slope <var>a</var>. The nudge buttons show the walk (the picture uses a much bigger step than 0.0001 so you can see it). <var>c</var> only lifts the whole surface up or down.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <p>Start values: <var>a</var> = 2, <var>b</var> = −3, <var>c</var> = 10, so <var>d</var> = 2·(−3) + 10 = <b>4</b>. This is the cell Karpathy types at 14:12.</p>
+    <ul>
+      <li><b>Nudge <var>a</var>.</b> <var>a</var> gets multiplied by <var>b</var> = −3, so each extra bit of <var>a</var> takes away three times as much from <var>d</var>. By hand: 2.0001 × (−3) + 10 = 3.9997. That's 0.0003 less, and −0.0003 ÷ 0.0001 = <b>−3</b>.</li>
+      <li><b>Nudge <var>b</var>.</b> <var>b</var> gets multiplied by <var>a</var> = 2. Slope <b>2</b>.</li>
+      <li><b>Nudge <var>c</var>.</b> <var>c</var> is added straight in, so <var>d</var> moves exactly as much as <var>c</var> does. Slope <b>1</b>.</li>
+    </ul>
+    <p>Two rules fall out of this, and Karpathy uses them on every node from 32:10 onwards:</p>
+    <ul>
+      <li>For <b>×</b>, each input's slope is <b>the other input's value</b>.</li>
+      <li>For <b>+</b>, each input's slope is <b>1</b>.</li>
+    </ul>
+    <p>The notebook prints <code>slope -3.000000000010772</code>. The 0.000000000010772 at the end is floating-point rounding. The true answer is exactly −3.</p>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>Put the slopes together, (−3, 2, 1), and you have the <b>gradient</b> of <var>d</var>. In the picture, the first two are the orange arrow on the floor: it points in the direction that raises <var>d</var> fastest. That's the arrow from 3Blue1Brown <a class="xref" data-v="c2" data-t="679"><span class="who">3B1B 2 ·</span> 11:19</a>, where a gradient of (3, 1) means "the first input matters three times as much". Here <var>a</var> matters three times as much as <var>c</var>.</p>
+    <p>In a network there's one slope like this for every weight. 3B1B shows that list as a long column of numbers <a class="xref" data-v="c2" data-t="660"><span class="who">3B1B 2 ·</span> 11:00</a>.</p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <div class="words">
+    <div class="w"><span class="en">partial derivative</span><span class="ar" lang="ar">المشتقة الجزئية</span><span class="mn">the slope for one input while the others stay frozen: one slice of the surface</span></div>
+    <div class="w"><span class="en">with respect to</span><span class="ar" lang="ar">بالنسبة إلى</span><span class="mn">"the derivative of <var>d</var> with respect to <var>a</var>" = how <var>d</var> reacts when only <var>a</var> moves</span></div>
+    <div class="w"><span class="en">variable, constant</span><span class="ar" lang="ar">متغير، ثابت</span><span class="mn">a value that changes / one that doesn't</span></div>
+    <div class="w"><span class="en">vector</span><span class="ar" lang="ar">متجه</span><span class="mn">an ordered list of numbers, like (−3, 2, 1)</span></div>
+    <div class="w"><span class="en">surface</span><span class="ar" lang="ar">سطح</span><span class="mn">the 3D shape you get when the output depends on two inputs</span></div>
+    <div class="w"><span class="en">positive, negative, sign</span><span class="ar" lang="ar">موجب، سالب، الإشارة</span><span class="mn">the sign of a slope gives its direction</span></div>
+  </div>
+  <h3>How to read it out loud</h3>
+  <ul class="phrases">
+    <li><b>dd / da</b><span>"d d by d a": how much <var>d</var> changes per tiny change in <var>a</var>. In Arabic it's like <span class="ar" lang="ar">د d ÷ د a</span>. Karpathy sometimes writes ∂ (a curly d) for partial derivatives. It means the same thing here.</span></li>
+    <li><b>dL / dc</b><span>"d L by d c": how much the final output <var>L</var> reacts to <var>c</var>. You'll hear this constantly from 32:10.</span></li>
+  </ul>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="852">14:12</a><span><var>d</var> = <var>a</var>*<var>b</var> + <var>c</var>, with <var>a</var>=2, <var>b</var>=−3, <var>c</var>=10, gives <var>d</var> = 4.</span></li>
+    <li><a data-v="k" data-t="887">14:47</a><span>Fix the inputs and pick a tiny <var>h</var>.</span></li>
+    <li><a data-v="k" data-t="923">15:23</a><span><code>d1</code>, <code>d2</code>, and slope = (d2 − d1)/h.</span></li>
+    <li><a data-v="k" data-t="994">16:34</a><span>Guess first: does <var>d</var> go up or down when <var>a</var> goes up?</span></li>
+    <li><a data-v="k" data-t="1029">17:09</a><span>Down: from 4 to 3.9997. The slope is −3.</span></li>
+    <li><a data-v="k" data-t="1053">17:33</a><span>The calculus check: the derivative of <var>a</var>·<var>b</var> + <var>c</var> with respect to <var>a</var> is <var>b</var>.</span></li>
+    <li><a data-v="k" data-t="1089">18:09</a><span>Bump <var>b</var> instead: the slope is 2, the value of <var>a</var>.</span></li>
+    <li><a data-v="k" data-t="1124">18:44</a><span>Bump <var>c</var>: the slope is 1.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>If <var>b</var> were 5 instead of −3, what would the slope of <var>d</var> with respect to <var>a</var> be? Predict it, then check by moving the ball.</summary>
+    <div class="ans"><b>5</b>. In <var>a</var>×<var>b</var>, the slope for <var>a</var> is the value of <var>b</var>. In the picture, the left–right slice through the ball tilts up at slope 5.</div></details>
+  <details class="check"><summary>Why does moving <var>c</var> lift the whole surface without tilting it?</summary>
+    <div class="ans">Because <var>c</var> is just added at the end. It changes every height by the same amount and doesn't change any slope. That's also why the slope for <var>c</var> is always exactly 1.</div></details>
+</section>
+
+<!-- ================= S4 VALUE ================= -->
+<section class="st" id="s-value">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="1149">▶ 19:09 – 32:10</a><span>Chapter 5 · "starting the core Value object of micrograd and its visualization"</span></div>
+    <h2>The Value object: numbers that remember</h2>
+    <p class="lead"><b>Karpathy wraps each number in a small object that also remembers which numbers made it, and how. Those memories join up into a graph that he can walk backwards later.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="two">
+      <div style="display:grid;gap:8px;min-width:0">
+        <pre class="code" id="b-code"></pre>
+        <div class="controls">
+          <button class="btn ghost sm" type="button" id="b-back">← Back</button>
+          <button class="btn sm" type="button" id="b-next">Run next line →</button>
+          <span class="mono" style="color:var(--muted)" id="b-count"></span>
+        </div>
+      </div>
+      <pre class="insp" id="b-insp"></pre>
+    </div>
+    <div class="pyline" id="b-py"></div>
+    <div class="controls">
+      <span class="lbltxt" id="b-mode-lab">Arrows show:</span>
+      <div class="seg" role="group" aria-labelledby="b-mode-lab" id="b-mode">
+        <button type="button" data-m="flow" aria-pressed="true">how values flow (draw_dot)</button>
+        <button type="button" data-m="prev" aria-pressed="false">what _prev points to</button>
+      </div>
+    </div>
+    <div class="scrollx"><svg id="g-build" viewBox="0 0 944 168" style="min-width:600px" role="img" aria-label="The expression graph Karpathy draws with draw_dot, built one line at a time."></svg></div>
+    <div class="note ok" id="b-note"></div>
+    <figcaption>Run the lines one by one. The box on the right shows what is stored inside the new <code>Value</code>. The graph is what <code>draw_dot(L)</code> shows at 28:36. Then flip the arrows: <code>_prev</code> points <b>backwards</b>, from each result to the values that made it. That is the direction backpropagation walks. Every <code>grad</code> is still 0, because nothing has been computed backwards yet.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><b>Plain numbers forget.</b> After <code>2.0 * -3.0</code>, Python only has <code>-6.0</code>. It has no idea where that came from. A <code>Value</code> keeps <code>_prev</code> (the inputs that made it) and <code>_op</code> (the operation, as a string such as <code>'*'</code>).</li>
+      <li><b><code>a + b</code> is a shortcut.</b> Python turns it into <code>a.__add__(b)</code>. By writing <code>__add__</code> and <code>__mul__</code>, Karpathy teaches Python what + and × mean for his objects. This is called <b>operator overloading</b>. Names with double underscores are called "dunder" methods.</li>
+      <li><b><code>__repr__</code></b> only controls how the object prints. Without it you'd see something like <code>&lt;__main__.Value object at 0x7f…&gt;</code>. If your cell prints <code>Value(data=2.0)</code>, yours works.</li>
+      <li><b><code>draw_dot</code></b> draws the graph with Graphviz. The round + and * nodes are only for the drawing. They are not <code>Value</code> objects.</li>
+      <li><b><code>grad</code> starts at 0.0.</b> Later it will hold "if I nudge this, how much does <var>L</var> change?". Zero means "no effect known yet".</li>
+      <li><b>Leaves</b> are values made directly, like <var>a</var>, <var>b</var>, <var>c</var>, <var>f</var>. In a real network, some leaves are weights (we want their gradients so we can change them) and some are data (fixed; we never change them).</li>
+    </ul>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>You can't walk backwards without a path. Every + and × leaves a breadcrumb (<code>_prev</code>, <code>_op</code>). At 32:10 backpropagation follows those breadcrumbs from <var>L</var> back to every leaf, using the two rules from the last section (× gives "the other value", + gives 1) at each step.</p>
+    <p>PyTorch does exactly the same. Every tensor that comes out of an operation stores a <code>grad_fn</code>, which is its own breadcrumb.</p>
+  </div>
+
+  <h3>The Python in this chapter</h3>
+  <ul class="pybox">
+    <li><code>class Value:</code><span>a blueprint. <code>Value(2.0)</code> builds one object from it.</span></li>
+    <li><code>__init__(self, data)</code><span>runs automatically when you write <code>Value(2.0)</code>. <code>self</code> is the new object being built.</span></li>
+    <li><code>self.data = data</code><span>stores the number on the object, so <code>a.data</code> reads it back.</span></li>
+    <li><code>__repr__(self)</code><span>returns the text that <code>print</code> and the notebook show.</span></li>
+    <li><code>f"Value(data={self.data})"</code><span>an f-string: the part in <code>{ }</code> is replaced by its value.</span></li>
+    <li><code>__add__(self, other)</code><span>for <code>a + b</code>: <code>self</code> is <var>a</var>, <code>other</code> is <var>b</var>. It returns a new <code>Value</code>.</span></li>
+    <li><code>_children=()</code><span>a default argument: if you don't pass it, it's an empty tuple.</span></li>
+    <li><code>set(_children)</code><span>a set: no duplicates and no order. That's why <code>d._prev</code> may print in any order.</span></li>
+    <li><code>_prev</code>, <code>_op</code><span>the leading underscore is a habit that means "internal, for the library's own use".</span></li>
+  </ul>
+
+  <h3>Words and refreshers</h3>
+  <div class="words">
+    <div class="w"><span class="en">class, object</span><span class="ar" lang="ar">صنف، كائن</span><span class="mn">the blueprint, and one thing built from it</span></div>
+    <div class="w"><span class="en">method</span><span class="ar" lang="ar">دالة تابعة</span><span class="mn">a function that belongs to a class, like <code>__add__</code></span></div>
+    <div class="w"><span class="en">attribute</span><span class="ar" lang="ar">خاصية</span><span class="mn">a value stored on an object, like <code>.data</code> or <code>.grad</code></span></div>
+    <div class="w"><span class="en">operator</span><span class="ar" lang="ar">مؤثر / عملية</span><span class="mn">a symbol like + or ×</span></div>
+    <div class="w"><span class="en">operator overloading</span><span class="ar" lang="ar">التحميل الزائد للمؤثرات</span><span class="mn">giving + and × a meaning for your own objects</span></div>
+    <div class="w"><span class="en">graph (two meanings!)</span><span class="ar" lang="ar">رسم بياني / مخطط شبكي</span><span class="mn">in 8:08 it meant a plot of a curve. Here it means boxes joined by arrows.</span></div>
+    <div class="w"><span class="en">node, edge</span><span class="ar" lang="ar">عُقدة، حافة</span><span class="mn">a box in the graph / an arrow between boxes</span></div>
+    <div class="w"><span class="en">leaf</span><span class="ar" lang="ar">ورقة (عقدة طرفية)</span><span class="mn">a node with no inputs: made directly, not computed</span></div>
+    <div class="w"><span class="en">children</span><span class="ar" lang="ar">الأبناء (المدخلات)</span><span class="mn">the inputs a node was made from. Karpathy's word, a bit backwards: the children come first.</span></div>
+    <div class="w"><span class="en">pointer, reference</span><span class="ar" lang="ar">مؤشر، مرجع</span><span class="mn">a link to another object, not a copy of it</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="1149">19:09</a><span><code>class Value</code>: wraps one number in <code>.data</code>.</span></li>
+    <li><a data-v="k" data-t="1185">19:45</a><span><code>__repr__</code> makes it print as <code>Value(data=2.0)</code>.</span></li>
+    <li><a data-v="k" data-t="1221">20:21</a><span><code>__add__</code>: <code>a + b</code> becomes <code>a.__add__(b)</code>.</span></li>
+    <li><a data-v="k" data-t="1292">21:32</a><span><code>__mul__</code>: same idea for ×.</span></li>
+    <li><a data-v="k" data-t="1327">22:07</a><span><code>a*b + c</code> is really <code>a.__mul__(b).__add__(c)</code>.</span></li>
+    <li><a data-v="k" data-t="1362">22:42</a><span><code>_children</code> / <code>_prev</code>: each Value remembers its inputs.</span></li>
+    <li><a data-v="k" data-t="1432">23:52</a><span><code>_op</code>: each Value remembers the operation that made it.</span></li>
+    <li><a data-v="k" data-t="1468">24:28</a><span><code>draw_dot</code>: the "slightly scary" Graphviz code.</span></li>
+    <li><a data-v="k" data-t="1573">26:13</a><span>The round op nodes are only drawing helpers.</span></li>
+    <li><a data-v="k" data-t="1608">26:48</a><span>Labels: <var>a</var>, <var>b</var>, <var>c</var>, <var>e</var>, <var>d</var>.</span></li>
+    <li><a data-v="k" data-t="1681">28:01</a><span>One layer deeper: <var>f</var> = −2 and <var>L</var> = <var>d</var> × <var>f</var> = −8.</span></li>
+    <li><a data-v="k" data-t="1751">29:11</a><span>Recap of the forward pass. Backprop is next.</span></li>
+    <li><a data-v="k" data-t="1786">29:46</a><span><code>grad</code> = the derivative of <var>L</var> with respect to each node. dL/dL = 1.</span></li>
+    <li><a data-v="k" data-t="1821">30:21</a><span>Weights are leaves we want gradients for. Data stays fixed.</span></li>
+    <li><a data-v="k" data-t="1857">30:57</a><span><code>self.grad = 0.0</code>: start by assuming "no effect".</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>When you write <code>a * b + c</code>, which methods does Python call, and in what order?</summary>
+    <div class="ans">First <code>a.__mul__(b)</code> (× before +), which returns a new Value with data −6. Then that new Value's <code>__add__(c)</code>, which returns another new Value with data 4.</div></details>
+  <details class="check"><summary>Why does Karpathy bother storing <code>_prev</code> and <code>_op</code>? Say it in one sentence.</summary>
+    <div class="ans">So that, starting from the output, the code can find every input and know which rule (× or +) to use when it walks backwards to compute the gradients.</div></details>
+</section>
+
+
+<div class="part-head" id="part2">
+  <div class="eyebrow">Part 2 · 32:10 – 2:25:52</div>
+  <h2>Backpropagation, a neuron, and training</h2>
+  <p>The chain rule by hand, then making it automatic, then a real network trained live in your browser.</p>
+</div>
+
+<!-- ================= BACKPROP BY HAND ================= -->
+<section class="st" id="s-backprop">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="1930">▶ 32:10 – 51:10</a><span>Chapter 6 · "manual backpropagation example #1: simple expression"</span></div>
+    <h2>Backprop by hand: the chain rule</h2>
+    <p class="lead"><b>Start at <var>L</var> with gradient 1. At every node, multiply the gradient arriving from above by that node's own local slope. Repeat until you reach the leaves. That is the whole algorithm.</b></p>
+  </div>
+
+  <h3>Play with it: you do the backprop</h3>
+  <figure>
+    <div class="scrollx"><svg id="g-bp" viewBox="0 0 944 168" style="min-width:600px" role="img" aria-label="Karpathy's L graph. You fill in each gradient, from L back to the leaves."></svg></div>
+    <div class="game" id="bp-game" aria-live="polite">
+      <div class="q" id="bp-q"></div>
+      <div class="opts" id="bp-opts"></div>
+      <div class="eq" id="bp-eq"></div>
+    </div>
+    <div class="controls">
+      <button class="btn ghost sm" type="button" id="bp-show">Show me this one</button>
+      <button class="btn ghost sm" type="button" id="bp-restart">Start again</button>
+      <span class="spacer"></span>
+      <button class="btn sm" type="button" id="bp-check">Check with nudges (like his lol())</button>
+    </div>
+    <pre class="nb" id="bp-print"><span class="k"># finish the graph, then check every leaf numerically</span></pre>
+    <figcaption>Pink is the node you're working on. Pick its <b>local</b> slope: how its parent reacts to it, ignoring the rest of the graph. The page multiplies that by the gradient already sitting on the parent (the "upstream" gradient). The numbers will match what Karpathy fills in from 34:18 to 49:04, and the numerical check uses the same nudge-and-measure trick as his <code>lol()</code> function.</figcaption>
+  </figure>
+
+  <figure>
+    <p class="figtitle">The chain rule as gears: man, bicycle, car</p>
+    <div class="stage short" id="gears"></div>
+    <div class="slider"><label for="gr-turn">turns</label><input type="range" id="gr-turn" min="0" max="2" step="0.01" value="0"><output id="gr-turn-o">0.00</output></div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="gr-play">▶ Spin</button>
+      <span class="lbltxt">Drag the slider to turn the man's gear yourself.</span>
+    </div>
+    <dl class="readout" id="gr-read"></dl>
+    <figcaption>Karpathy's example from Wikipedia at 43:11: the bicycle is 4 times as fast as the man, the car is 2 times as fast as the bicycle, so the car is 2 × 4 = 8 times as fast as the man. Rates of change along a chain <b>multiply</b>. (Meshed gears also flip direction each time; ignore that and watch the speed.)</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><b>Base case:</b> d<var>L</var>/d<var>L</var> = 1. Nudge <var>L</var> by <var>h</var> and <var>L</var> moves by <var>h</var>.</li>
+      <li><b>One step back:</b> <var>L</var> = <var>d</var> × <var>f</var> is a × node, so each input's local slope is the other one's value: d<var>L</var>/d<var>d</var> = <var>f</var> = −2 and d<var>L</var>/d<var>f</var> = <var>d</var> = 4. At 34:54 he proves it from the definition: ((<var>d</var>+<var>h</var>)<var>f</var> − <var>d</var><var>f</var>)/<var>h</var> = <var>f</var>.</li>
+      <li><b>The crux (37:52):</b> <var>c</var> is two steps away from <var>L</var>. We know how <var>L</var> reacts to <var>d</var> (−2) and how <var>d</var> reacts to <var>c</var> (1, because <var>d</var> = <var>e</var> + <var>c</var>). The chain rule says: multiply. d<var>L</var>/d<var>c</var> = −2 × 1 = −2.</li>
+      <li><b>A + node just passes the gradient through</b> to all its inputs, because its local slopes are all 1. Karpathy says it "routes" or "distributes" the gradient.</li>
+      <li><b>Last step:</b> <var>e</var> = <var>a</var> × <var>b</var>. d<var>L</var>/d<var>a</var> = (−2) × <var>b</var> = (−2)(−3) = 6, and d<var>L</var>/d<var>b</var> = (−2) × <var>a</var> = −4.</li>
+      <li><b>Gradient check:</b> he nudges each leaf by <var>h</var> inside <code>lol()</code> and measures. Same numbers. The function is only a "staging area", so the nudges don't touch his real variables.</li>
+    </ul>
+    <p>His one-line summary at 50:50: backprop is "a recursive application of chain rule backwards through the computation graph".</p>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>Every node only needs to know its own small job (its local slope). It never needs to see the whole graph. That is why backprop scales to networks with billions of nodes: each piece is tiny and simple, and the chain rule glues them together.</p>
+    <p>Optional, if you want Grant's picture of the same idea: <a class="xref" data-v="c3"><span class="who">3B1B ·</span> Ch. 3 backprop</a> and <a class="xref" data-v="c4"><span class="who">3B1B ·</span> Ch. 4 the calculus</a>. They aren't in your plan, and Karpathy covers everything you need.</p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <table class="notation">
+    <thead><tr><th>Karpathy writes</th><th>In another language (Arabic)</th></tr></thead>
+    <tbody>
+      <tr><td><var>dz</var>/<var>dx</var> = <var>dz</var>/<var>dy</var> · <var>dy</var>/<var>dx</var></td><td class="ar" lang="ar">دع/دس = دع/دص × دص/دس</td></tr>
+      <tr><td>chain rule</td><td class="ar" lang="ar">قاعدة السلسلة (مشتقة الدالة المركبة)</td></tr>
+    </tbody>
+  </table>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">chain rule</span><span class="ar" lang="ar">قاعدة السلسلة</span><span class="mn">slopes along a chain multiply</span></div>
+    <div class="w"><span class="en">local derivative</span><span class="ar" lang="ar">المشتقة المحلية</span><span class="mn">how one node's output reacts to its own inputs, nothing more</span></div>
+    <div class="w"><span class="en">upstream / global gradient</span><span class="ar" lang="ar">التدرج القادم من الأعلى</span><span class="mn">how the final output <var>L</var> reacts to this node's output</span></div>
+    <div class="w"><span class="en">composition</span><span class="ar" lang="ar">تركيب الدوال (دالة الدالة)</span><span class="mn">a function fed into another function</span></div>
+    <div class="w"><span class="en">recursive</span><span class="ar" lang="ar">تكراري (عودي)</span><span class="mn">doing the same step again on the next piece</span></div>
+    <div class="w"><span class="en">gradient check</span><span class="ar" lang="ar">فحص التدرج</span><span class="mn">confirming a gradient by nudging and measuring</span></div>
+  </div>
+  <h3>His English, decoded</h3>
+  <ul class="phrases">
+    <li><b>the crux</b><span>the most important point, the heart of it.</span></li>
+    <li><b>routes, distributes</b><span>sends the same gradient on to every input.</span></li>
+    <li><b>base case</b><span>the starting value the rest is built from (here, <var>L</var>.grad = 1).</span></li>
+    <li><b>staging area</b><span>a scratch space for experiments that doesn't disturb the real variables.</span></li>
+  </ul>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="1930">32:10</a><span>dL/dL = 1: the base case.</span></li>
+    <li><a data-v="k" data-t="1965">32:45</a><span>The <code>lol()</code> staging function for numerical gradients.</span></li>
+    <li><a data-v="k" data-t="2058">34:18</a><span>He sets <code>L.grad = 1</code> by hand.</span></li>
+    <li><a data-v="k" data-t="2094">34:54</a><span>dL/dd = <var>f</var>, proved from the definition.</span></li>
+    <li><a data-v="k" data-t="2201">36:41</a><span><code>f.grad = 4</code>, <code>d.grad = -2</code>, checked numerically.</span></li>
+    <li><a data-v="k" data-t="2272">37:52</a><span>"The crux of backpropagation": dL/dc.</span></li>
+    <li><a data-v="k" data-t="2377">39:37</a><span>The local derivative of + is 1.</span></li>
+    <li><a data-v="k" data-t="2484">41:24</a><span>The chain rule on Wikipedia.</span></li>
+    <li><a data-v="k" data-t="2591">43:11</a><span>Car, bicycle, walking man: rates multiply.</span></li>
+    <li><a data-v="k" data-t="2732">45:32</a><span>A plus node routes the gradient.</span></li>
+    <li><a data-v="k" data-t="2838">47:18</a><span>Second chain-rule step, through the × node.</span></li>
+    <li><a data-v="k" data-t="2944">49:04</a><span><code>a.grad = 6</code>, <code>b.grad = -4</code>.</span></li>
+    <li><a data-v="k" data-t="3015">50:15</a><span>Recap: backprop is the chain rule applied backwards, node by node.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Why does a + node pass the gradient through unchanged?</summary>
+    <div class="ans">Its local slope for every input is 1 (nudge <var>c</var> by <var>h</var> and <var>d</var> = <var>e</var> + <var>c</var> moves by <var>h</var>). The chain rule multiplies the upstream gradient by 1, so it arrives unchanged.</div></details>
+  <details class="check"><summary>If <var>f</var> were 3 instead of −2, what would <code>c.grad</code> be?</summary>
+    <div class="ans"><b>3</b>. <code>d.grad</code> = <var>f</var> = 3 (× node: the other value), and <var>c</var> gets it through the + node unchanged.</div></details>
+</section>
+
+<!-- ================= ONE STEP ================= -->
+<section class="st" id="s-step">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="3070">▶ 51:10 – 52:52</a><span>Chapter 7 · "preview of a single optimization step"</span></div>
+    <h2>One optimization step</h2>
+    <p class="lead"><b>Move every leaf a little in the direction of its own gradient and <var>L</var> goes up. Move against it and <var>L</var> goes down. That small move is one step of learning.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="stage" id="g3-step"></div>
+    <div class="slider"><label for="stp-lr">step</label><input type="range" id="stp-lr" min="0.01" max="0.1" step="0.01" value="0.01"><output id="stp-lr-o">0.01</output></div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="stp-up">Step along the gradient (L up)</button>
+      <button class="btn sm" type="button" id="stp-down">Step against it (L down)</button>
+      <button class="btn ghost sm" type="button" id="stp-reset">Reset</button>
+    </div>
+    <pre class="nb" id="stp-print"></pre>
+    <figcaption>The same 3D graph as before, already with its gradients. Each step does what Karpathy types at 51:46: <code>a.data += 0.01 * a.grad</code> for every leaf, then a new forward pass. With his numbers, <var>L</var> goes from −8 to −7.286496. Every leaf moves by a different amount, because each one has its own gradient.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>The gradient says which way to push each leaf to make <var>L</var> bigger. So <code>a.data += 0.01 * a.grad</code> pushes every leaf "uphill" by a small step.</li>
+      <li>He then reruns the forward pass by hand and <var>L</var> is less negative: −7.29 instead of −8.</li>
+      <li>Here he wants <var>L</var> to go <b>up</b>, just to show the power of the gradient. When training a network, <var>L</var> is the loss and we want it to go <b>down</b>, so we step against the gradient: that's the minus sign at 2:02:58.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>This is box 4 ("Update") of the training loop at the top of the page. The 3D landscape there does the same thing with two weights instead of four leaves.</p>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="3070">51:10</a><span>Nudge the inputs in the direction of the gradient to make <var>L</var> go up.</span></li>
+    <li><a data-v="k" data-t="3106">51:46</a><span>The step: <code>a.data += 0.01 * a.grad</code> for a, b, c and f.</span></li>
+    <li><a data-v="k" data-t="3141">52:21</a><span>New forward pass: <var>L</var> goes from −8 to about −7.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>After one step, which leaf moved the most, and why?</summary>
+    <div class="ans"><var>a</var>: its gradient (6) is the biggest, so 0.01 × 6 = 0.06 is the biggest move. A bigger gradient means a bigger push, because that leaf matters more to <var>L</var>.</div></details>
+</section>
+
+<!-- ================= NEURON ================= -->
+<section class="st" id="s-neuron">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="3172">▶ 52:52 – 1:09:02</a><span>Chapter 8 · "manual backpropagation example #2: a neuron"</span></div>
+    <h2>Backprop through a neuron</h2>
+    <p class="lead"><b>A neuron multiplies each input by a weight, adds them up with a bias, and squashes the total with tanh. Backprop through it uses the same × and + rules, plus one new local slope: tanh's is 1 − tanh².</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="two even">
+      <svg id="nr-diag" viewBox="0 0 420 270" role="img" aria-label="Neuron diagram: x1 times w1 plus x2 times w2 plus b gives n; tanh of n gives o. Gradients shown in orange."></svg>
+      <svg id="nr-tanh" viewBox="0 0 300 270" role="img" aria-label="The tanh curve with the current n and o, and the local slope 1 minus o squared."></svg>
+    </div>
+    <div class="sliders">
+      <div class="slider"><label for="nr-x1">x₁</label><input type="range" id="nr-x1" min="-3" max="3" step="0.1" value="2"><output></output></div>
+      <div class="slider"><label for="nr-w1">w₁</label><input type="range" id="nr-w1" min="-3" max="3" step="0.1" value="-3"><output></output></div>
+      <div class="slider"><label for="nr-x2">x₂</label><input type="range" id="nr-x2" min="-3" max="3" step="0.1" value="0"><output></output></div>
+      <div class="slider"><label for="nr-w2">w₂</label><input type="range" id="nr-w2" min="-3" max="3" step="0.1" value="1"><output></output></div>
+      <div class="slider"><label for="nr-b">b</label><input type="range" id="nr-b" min="-8" max="8" step="0.01" value="6.88"><output></output></div>
+    </div>
+    <div class="controls">
+      <button class="btn ghost sm" type="button" id="nr-karpathy">Karpathy's numbers (b = 6.8813…)</button>
+    </div>
+    <div class="stage short" id="nr-3d"></div>
+    <figcaption>Top: the neuron and its gradients, recomputed live as you move the sliders. Right: where <var>n</var> lands on the tanh curve, and its slope. Bottom: the same neuron as a 3D surface. For every pair of inputs (<var>x</var>₁, <var>x</var>₂) on the floor, the height is the output <var>o</var>. The weights set which way the cliff faces and how steep it is. The bias slides it. The blue ball is your current input.</figcaption>
+  </figure>
+
+  <figure>
+    <p class="figtitle">The same neuron as Karpathy's draw_dot (1:08:40)</p>
+    <div class="scrollx"><svg id="g-nr" viewBox="0 0 1410 200" style="min-width:860px" role="img" aria-label="Karpathy's neuron graph with gradients filled in by backpropagation."></svg></div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="gnr-run">▶ Backprop through it</button>
+      <button class="btn ghost sm" type="button" id="gnr-reset">Clear gradients</button>
+    </div>
+    <figcaption>Uses Karpathy's exact values. Watch the 0.5 come out of tanh, get copied by both + nodes, then hit the × nodes, where each input gets "the other value × 0.5".</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><b>The model of a neuron (53:28):</b> inputs <var>x</var>, one weight <var>w</var> per input (the "synapse strength"), multiply them, add them all up, add the bias <var>b</var> (how "trigger happy" the neuron is), then pass the total through an activation function.</li>
+      <li><b>tanh</b> squashes any number into the range −1 to 1. It's the same job as 3Blue1Brown's sigmoid, which squashes into 0 to 1.</li>
+      <li>He sets <var>b</var> = 6.8813735870195432 on purpose so the numbers come out nice: <var>n</var> = 0.8814 and <var>o</var> = 0.7071.</li>
+      <li><b>Backprop:</b> <code>o.grad</code> = 1. tanh's local slope is 1 − <var>o</var>² = 1 − 0.5 = 0.5, so <code>n.grad</code> = 0.5. The two + nodes copy 0.5 to <var>b</var> and to both products. The × nodes give <code>w1.grad</code> = <var>x</var>₁ × 0.5 = 1, <code>x1.grad</code> = <var>w</var>₁ × 0.5 = −1.5, <code>w2.grad</code> = <var>x</var>₂ × 0.5 = 0, <code>x2.grad</code> = <var>w</var>₂ × 0.5 = 0.5.</li>
+      <li><b><code>w2.grad</code> is 0 because <var>x</var>₂ is 0.</b> If an input is zero, its weight can't change anything right now, so it gets no gradient.</li>
+      <li><b>Any function can be a node (58:10),</b> as long as you know its local derivative. tanh isn't built from + and ×; it's one block with its own rule.</li>
+    </ul>
+  </div>
+
+  <h3>Why we need this</h3>
+  <div class="why">
+    <p>Neurons are the bricks of every network in this lecture (1:43:55), and the weight gradients are exactly what training uses. Watch the tanh slope in the picture: when <var>n</var> is far from 0, tanh is flat and its slope is almost 0, so almost no gradient gets through. That is called <b>saturation</b>, and it's one reason modern networks often use ReLU instead (3Blue1Brown, <a class="xref" data-v="c1" data-t="1050"><span class="who">3B1B 1 ·</span> 17:30</a>).</p>
+    <p>Links: weights and the weighted sum <a class="xref" data-v="c1" data-t="548"><span class="who">3B1B 1 ·</span> 9:08</a> · the sigmoid squish <a class="xref" data-v="c1" data-t="638"><span class="who">3B1B 1 ·</span> 10:38</a> · the bias <a class="xref" data-v="c1" data-t="662"><span class="who">3B1B 1 ·</span> 11:02</a></p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <div class="words">
+    <div class="w"><span class="en">neuron</span><span class="ar" lang="ar">عصبون (خلية عصبية)</span><span class="mn">weighted sum + bias, then an activation function</span></div>
+    <div class="w"><span class="en">weight, bias</span><span class="ar" lang="ar">الوزن، الانحياز</span><span class="mn">how much each input counts / how eager the neuron is to fire</span></div>
+    <div class="w"><span class="en">activation function</span><span class="ar" lang="ar">دالة التنشيط</span><span class="mn">the squashing step at the end (tanh, sigmoid, ReLU)</span></div>
+    <div class="w"><span class="en">tanh</span><span class="ar" lang="ar">دالة الظل الزائدي</span><span class="mn">hyperbolic tangent: an S-curve from −1 to 1</span></div>
+    <div class="w"><span class="en">dot product</span><span class="ar" lang="ar">الضرب القياسي</span><span class="mn"><var>w</var>₁<var>x</var>₁ + <var>w</var>₂<var>x</var>₂ + … : multiply pairs, add them up</span></div>
+    <div class="w"><span class="en">saturate</span><span class="ar" lang="ar">يتشبّع</span><span class="mn">stuck near the flat end of the S-curve, where the slope is almost 0</span></div>
+  </div>
+  <h3>His English, decoded</h3>
+  <ul class="phrases">
+    <li><b>trigger happy</b><span>quick to fire. A big bias makes the neuron "on" more easily.</span></li>
+    <li><b>squashing function</b><span>a function that pushes any number into a small range.</span></li>
+    <li><b>plateau, cap it smoothly</b><span>the curve flattens out and stops rising.</span></li>
+    <li><b>synapse</b><span>the connection between two biological neurons; here, a weight.</span></li>
+  </ul>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="3172">52:52</a><span>The MLP picture from the CS231n notes.</span></li>
+    <li><a data-v="k" data-t="3208">53:28</a><span>The neuron model: <var>w</var>·<var>x</var>, the cell body, the bias.</span></li>
+    <li><a data-v="k" data-t="3243">54:03</a><span>The tanh plot.</span></li>
+    <li><a data-v="k" data-t="3314">55:14</a><span>A two-input neuron in code.</span></li>
+    <li><a data-v="k" data-t="3419">56:59</a><span>tanh needs exponentials, which <code>Value</code> doesn't have yet.</span></li>
+    <li><a data-v="k" data-t="3490">58:10</a><span>Any function can be a node if you know its local derivative.</span></li>
+    <li><a data-v="k" data-t="3633">1:00:33</a><span>Bias 8: tanh squashes 2 to 0.96.</span></li>
+    <li><a data-v="k" data-t="3668">1:01:08</a><span><var>b</var> = 6.88… so the numbers come out nice.</span></li>
+    <li><a data-v="k" data-t="3774">1:02:54</a><span>Backprop through tanh: 1 − tanh².</span></li>
+    <li><a data-v="k" data-t="3882">1:04:42</a><span>The + nodes distribute 0.5.</span></li>
+    <li><a data-v="k" data-t="3990">1:06:30</a><span>The × nodes: <code>x2.grad = w2.data * x2w2.grad</code>.</span></li>
+    <li><a data-v="k" data-t="4027">1:07:07</a><span><code>w2.grad</code> is 0 because <var>x</var>₂ is 0.</span></li>
+    <li><a data-v="k" data-t="4098">1:08:18</a><span><code>w1.grad</code> = 1, <code>x1.grad</code> = −1.5.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Set <var>b</var> to 8. What happens to tanh's local slope, and what does that mean for learning?</summary>
+    <div class="ans"><var>n</var> moves far to the right on the curve, where it's flat. 1 − <var>o</var>² gets close to 0, so almost no gradient reaches the weights. The neuron is saturated and learns very slowly.</div></details>
+  <details class="check"><summary>Why is <code>w2.grad</code> exactly 0 with Karpathy's numbers?</summary>
+    <div class="ans">Because <var>x</var>₂ = 0. In a × node, a weight's local slope is its input's value. With the input at 0, wiggling the weight changes nothing.</div></details>
+</section>
+
+<!-- ================= _backward ================= -->
+<section class="st" id="s-ops">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="4142">▶ 1:09:02 – 1:17:32</a><span>Chapter 9 · "implementing the backward function for each operation"</span></div>
+    <h2>A <code>_backward</code> for every operation</h2>
+    <p class="lead"><b>Instead of filling in gradients by hand, every operation leaves behind a tiny function that knows its own local rule. Call those functions in the right order and backprop runs itself.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="controls">
+      <span class="lbltxt" id="op-lab">Operation:</span>
+      <div class="seg" role="group" aria-labelledby="op-lab" id="op-seg">
+        <button type="button" data-op="add" aria-pressed="true">a + b</button>
+        <button type="button" data-op="mul" aria-pressed="false">a * b</button>
+        <button type="button" data-op="tanh" aria-pressed="false">a.tanh()</button>
+        <button type="button" data-op="exp" aria-pressed="false">a.exp()</button>
+        <button type="button" data-op="pow" aria-pressed="false">a ** k</button>
+      </div>
+    </div>
+    <div class="sliders">
+      <div class="slider"><label for="op-a">a</label><input type="range" id="op-a" min="-3" max="3" step="0.1" value="2"><output></output></div>
+      <div class="slider" id="op-b-row"><label for="op-b">b</label><input type="range" id="op-b" min="-3" max="3" step="0.1" value="-3"><output></output></div>
+      <div class="slider" id="op-k-row"><label for="op-k">k</label><input type="range" id="op-k" min="-2" max="3" step="1" value="2"><output></output></div>
+      <div class="slider"><label for="op-g" class="c-grad">out.grad</label><input type="range" id="op-g" min="-2" max="2" step="0.1" value="1"><output></output></div>
+    </div>
+    <svg id="op-svg" viewBox="0 0 560 190" role="img" aria-label="Inputs flow into the operation and out; the gradient flows back, multiplied by the local slope."></svg>
+    <div class="controls">
+      <button class="btn sm" type="button" id="op-run">▶ Call out._backward()</button>
+    </div>
+    <pre class="code" id="op-code"></pre>
+    <figcaption>Pick an operation and set the numbers. The code shows the exact <code>_backward</code> Karpathy writes for it, with your values filled in. The gradient that arrives at <code>out</code> is multiplied by each input's local slope (chain rule) and added onto that input's <code>.grad</code>.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>Inside <code>__add__</code> he defines a small function <code>_backward</code> and stores it on <code>out</code>. It still remembers <code>self</code>, <code>other</code> and <code>out</code> after <code>__add__</code> has returned. A function that remembers the variables around it like this is called a <b>closure</b>.</li>
+      <li><b>+</b>: <code>self.grad = 1.0 * out.grad</code> and the same for <code>other</code>.</li>
+      <li><b>×</b>: <code>self.grad = other.data * out.grad</code>, <code>other.grad = self.data * out.grad</code>.</li>
+      <li><b>tanh</b>: <code>self.grad = (1 - t**2) * out.grad</code>, where <code>t</code> is the output.</li>
+      <li>A leaf's <code>_backward</code> does nothing: <code>lambda: None</code>.</li>
+      <li>Before starting, <code>o.grad</code> must be set to 1.0. Otherwise everything gets multiplied by the starting 0.</li>
+      <li>The funny bug at 1:14:57: he wrote <code>out._backward = _backward()</code>. The brackets <i>call</i> the function right away and store its result (<code>None</code>). Without brackets you store the function itself to call later.</li>
+    </ul>
+    <p>(Later, at 1:25:25, every <code>=</code> here becomes <code>+=</code>. The picture already uses <code>+=</code>. You'll see why in the bug section.)</p>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>Every operation in PyTorch has exactly this pair: a forward that computes the value and a backward that applies the local rule. At 2:23:30 Karpathy shows that adding your own operation to PyTorch means writing the same two functions.</p>
+  </div>
+
+  <h3>The Python in this chapter</h3>
+  <ul class="pybox">
+    <li><code>def _backward(): ...</code> inside <code>__add__</code><span>a function defined inside another function. It can use <code>self</code>, <code>other</code> and <code>out</code>.</span></li>
+    <li><code>out._backward = _backward</code><span>store the function on the object, without calling it.</span></li>
+    <li><code>self._backward = lambda: None</code><span>a one-line function that does nothing: the default for leaves.</span></li>
+    <li><code>o._backward()</code><span>now call it.</span></li>
+  </ul>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">closure</span><span class="ar" lang="ar">دالة مغلقة (closure)</span><span class="mn">a function that remembers the variables from where it was made</span></div>
+    <div class="w"><span class="en">call vs store</span><span class="ar" lang="ar">استدعاء / تخزين</span><span class="mn"><code>f()</code> runs it now; <code>f</code> is the function itself</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="4142">1:09:02</a><span>"Put an end to this suffering": automate the backward pass.</span></li>
+    <li><a data-v="k" data-t="4212">1:10:12</a><span>Leaves: an empty <code>_backward</code>.</span></li>
+    <li><a data-v="k" data-t="4247">1:10:47</a><span><code>_backward</code> for +.</span></li>
+    <li><a data-v="k" data-t="4318">1:11:58</a><span><code>_backward</code> for ×.</span></li>
+    <li><a data-v="k" data-t="4355">1:12:35</a><span><code>_backward</code> for tanh.</span></li>
+    <li><a data-v="k" data-t="4462">1:14:22</a><span><code>o.grad</code> must start at 1.0.</span></li>
+    <li><a data-v="k" data-t="4497">1:14:57</a><span>The funny bug: storing vs calling the function.</span></li>
+    <li><a data-v="k" data-t="4605">1:16:45</a><span>Calling <code>_backward</code> node by node gives the same numbers.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>What's the difference between <code>out._backward = _backward</code> and <code>out._backward = _backward()</code>?</summary>
+    <div class="ans">The first stores the function to call later. The second calls it immediately (when nothing is ready yet) and stores what it returns, which is <code>None</code>. Later, <code>out._backward()</code> fails with "NoneType object is not callable".</div></details>
+  <details class="check"><summary>In ×, why does <code>self.grad</code> use <code>other.data</code>?</summary>
+    <div class="ans">Because the local slope of <var>a</var>·<var>b</var> with respect to <var>a</var> is <var>b</var>: the rule "the other input's value" from 14:12.</div></details>
+</section>
+
+<!-- ================= TOPO ================= -->
+<section class="st" id="s-topo">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="4652">▶ 1:17:32 – 1:22:28</a><span>Chapter 10 · "implementing the backward function for a whole expression graph"</span></div>
+    <h2>The right order: topological sort</h2>
+    <p class="lead"><b>A node may only pass its gradient back once it has received everything from the nodes after it. A topological sort lists the nodes so that is guaranteed; walking the list backwards does the whole backprop.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="scrollx"><svg id="g-topo" viewBox="0 0 1410 200" style="min-width:860px" role="img" aria-label="Karpathy's neuron graph, visited by build_topo, then backpropagated in reverse order."></svg></div>
+    <div class="lists">
+      <div class="lst" id="tp-stack"><b>calls in progress</b></div>
+      <div class="lst" id="tp-visited"><b>visited</b></div>
+      <div class="lst" id="tp-topo"><b>topo (the order)</b></div>
+    </div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="tp-step">Next step →</button>
+      <button class="btn ghost sm" type="button" id="tp-play">▶ Play</button>
+      <button class="btn ghost sm" type="button" id="tp-reset">Reset</button>
+      <span class="mono" style="color:var(--muted)" id="tp-count"></span>
+    </div>
+    <pre class="pyline" id="tp-say"></pre>
+    <figcaption>Phase 1 runs <code>build_topo(o)</code>: a node is added to <code>topo</code> only after all of its children are in. Grey means visited, green means added. Phase 2 sets <code>o.grad = 1</code> and calls <code>_backward()</code> on <code>reversed(topo)</code>, so the gradients fill in from right to left.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>We must never call a node's <code>_backward</code> before every node that uses it has finished. Otherwise its gradient isn't complete yet.</li>
+      <li><b>Topological sort</b> lays out a graph so all the arrows point one way (left to right). It works for a <b>DAG</b>: a directed acyclic graph, where arrows have a direction and never loop back.</li>
+      <li><code>build_topo(v)</code>: if <code>v</code> isn't visited, mark it, call <code>build_topo</code> on each child, and only then append <code>v</code>. So a node always comes after all of its children.</li>
+      <li>The list ends with <code>o</code>. Reversed, it starts with <code>o</code>, so gradients flow from the output back to the leaves.</li>
+      <li>Finally he hides all this inside <code>backward()</code> (no underscore), so you just write <code>o.backward()</code>, exactly like <code>loss.backward()</code> in PyTorch.</li>
+    </ul>
+  </div>
+
+  <h3>The Python in this chapter</h3>
+  <ul class="pybox">
+    <li><code>visited = set()</code><span>a set: checking "is it in there?" is fast.</span></li>
+    <li><code>def build_topo(v): ... build_topo(child)</code><span>recursion: a function that calls itself on the smaller pieces.</span></li>
+    <li><code>topo.append(v)</code><span>add to the end of the list.</span></li>
+    <li><code>for node in reversed(topo):</code><span>walk the list from the end to the start.</span></li>
+  </ul>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">topological sort</span><span class="ar" lang="ar">الترتيب الطوبولوجي</span><span class="mn">an order where every node comes after the nodes it depends on</span></div>
+    <div class="w"><span class="en">DAG</span><span class="ar" lang="ar">مخطط موجّه لا دوري</span><span class="mn">arrows with a direction and no loops</span></div>
+    <div class="w"><span class="en">recursion</span><span class="ar" lang="ar">الاستدعاء الذاتي</span><span class="mn">a function that calls itself</span></div>
+    <div class="w"><span class="en">dependency</span><span class="ar" lang="ar">اعتمادية</span><span class="mn">something that must be done first</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="4652">1:17:32</a><span>Everything after a node must be done before its backward.</span></li>
+    <li><a data-v="k" data-t="4687">1:18:07</a><span>Topological sort of a DAG on Wikipedia.</span></li>
+    <li><a data-v="k" data-t="4722">1:18:42</a><span>The <code>build_topo</code> code.</span></li>
+    <li><a data-v="k" data-t="4793">1:19:53</a><span>The list ends with <code>o</code> = 0.707.</span></li>
+    <li><a data-v="k" data-t="4828">1:20:28</a><span>Call <code>_backward</code> on <code>reversed(topo)</code>.</span></li>
+    <li><a data-v="k" data-t="4863">1:21:03</a><span>Hide it inside <code>backward()</code>.</span></li>
+    <li><a data-v="k" data-t="4934">1:22:14</a><span><code>o.backward()</code>: backprop for one neuron.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Why does <code>o</code> end up last in <code>topo</code>?</summary>
+    <div class="ans">Because a node is appended only after all its children. <code>o</code> depends on everything, so everything else goes in first.</div></details>
+  <details class="check"><summary>What would go wrong if <code>x1w1._backward()</code> ran before <code>n._backward()</code>?</summary>
+    <div class="ans"><code>x1w1.grad</code> would still be 0, so it would pass 0 × something = 0 to <code>x1</code> and <code>w1</code>. Wrong gradients.</div></details>
+</section>
+
+<!-- ================= BUG ================= -->
+<section class="st" id="s-bug">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="4948">▶ 1:22:28 – 1:27:05</a><span>Chapter 11 · "fixing a backprop bug when one node is used multiple times"</span></div>
+    <h2>The bug when a value is used twice</h2>
+    <p class="lead"><b>If a value feeds into two places, its gradient must be the sum of what both places send back. Writing <code>=</code> overwrites the first one; writing <code>+=</code> adds them.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="controls">
+      <span class="lbltxt" id="bug-lab">Code uses:</span>
+      <div class="seg" role="group" aria-labelledby="bug-lab" id="bug-seg">
+        <button type="button" data-m="set" aria-pressed="true">= (the bug)</button>
+        <button type="button" data-m="add" aria-pressed="false">+= (the fix)</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn sm" type="button" id="bug-run">▶ Run backward()</button>
+    </div>
+    <div class="scrollx"><svg id="g-bug" viewBox="0 0 700 140" style="min-width:560px" role="img" aria-label="a and b feed both d = a times b and e = a plus b; f = d times e."></svg></div>
+    <pre class="nb" id="bug-log"></pre>
+    <dl class="readout" id="bug-res"></dl>
+    <figcaption>Karpathy's second example (1:24:14): <var>a</var> = −2, <var>b</var> = 3, <var>d</var> = <var>a</var>·<var>b</var>, <var>e</var> = <var>a</var> + <var>b</var>, <var>f</var> = <var>d</var>·<var>e</var>. Both <var>a</var> and <var>b</var> are used twice, so each gets two gradient deliveries. Run it with <code>=</code> and the second delivery wipes out the first. Switch to <code>+=</code> and they add up to the true answer.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>Simplest case: <code>b = a + a</code>. The answer should be 2 (nudge <var>a</var> by <var>h</var>, <var>b</var> grows by 2<var>h</var>). But <code>self</code> and <code>other</code> are the <b>same object</b>, so the second <code>other.grad = 1.0 * out.grad</code> just sets it to 1 again.</li>
+      <li>The general rule (the multivariable chain rule): when a value reaches the output along several paths, add up the gradient from every path.</li>
+      <li>The fix is one character per line: <code>+=</code> instead of <code>=</code>. It works because every <code>grad</code> starts at 0.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>In a real network almost everything is used more than once: every input feeds many neurons, and every weight is used for every example. Accumulating with <code>+=</code> is what makes that work. The flip side shows up at 2:10:38: because gradients accumulate, you must reset them to zero before each new backward pass.</p>
+  </div>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">accumulate</span><span class="ar" lang="ar">يتراكم (يجمع)</span><span class="mn">add each new amount onto what's already there</span></div>
+    <div class="w"><span class="en">overwrite</span><span class="ar" lang="ar">يكتب فوقه (يستبدل)</span><span class="mn">replace the old value, losing it</span></div>
+    <div class="w"><span class="en">multivariable chain rule</span><span class="ar" lang="ar">قاعدة السلسلة لعدة متغيرات</span><span class="mn">add the contributions from every path</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="4948">1:22:28</a><span><code>b = a + a</code> gives <code>a.grad</code> = 1. Wrong.</span></li>
+    <li><a data-v="k" data-t="5018">1:23:38</a><span>Why: <code>self</code> and <code>other</code> are the same object.</span></li>
+    <li><a data-v="k" data-t="5054">1:24:14</a><span>A bigger example with <var>d</var>, <var>e</var>, <var>f</var>.</span></li>
+    <li><a data-v="k" data-t="5125">1:25:25</a><span>The fix: accumulate with <code>+=</code>.</span></li>
+    <li><a data-v="k" data-t="5161">1:26:01</a><span>Now the gradients are correct.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>In <code>b = a + a</code>, why should <code>a.grad</code> be 2?</summary>
+    <div class="ans"><var>b</var> = 2<var>a</var>. Nudge <var>a</var> by <var>h</var> and <var>b</var> grows by 2<var>h</var>. Each of the two "paths" through the + contributes 1, and they add.</div></details>
+</section>
+
+<!-- ================= TANH BREAKDOWN ================= -->
+<section class="st" id="s-tanh">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="5225">▶ 1:27:05 – 1:39:31</a><span>Chapter 12 · "breaking up a tanh, exercising with more operations"</span></div>
+    <h2>Building tanh from smaller pieces</h2>
+    <p class="lead"><b>tanh can be built from exp, +, − and ÷. Built either way, the output and every gradient come out exactly the same. How big your building blocks are is your choice.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="controls">
+      <span class="lbltxt" id="th-lab">Build o as:</span>
+      <div class="seg" role="group" aria-labelledby="th-lab" id="th-seg">
+        <button type="button" data-m="one" aria-pressed="true">one tanh node</button>
+        <button type="button" data-m="many" aria-pressed="false">exp, +, −, ** −1, ×</button>
+      </div>
+    </div>
+    <div class="scrollx"><svg id="th-svg" viewBox="0 0 490 110" style="min-width:360px" role="img" aria-label="The last part of the neuron graph, either as a single tanh node or broken into smaller operations."></svg></div>
+    <dl class="readout" id="th-read"></dl>
+    <figcaption>Both versions are computed live by a small JavaScript copy of micrograd. The graph gets longer, but the forward value and the leaf gradients don't change by a single digit.</figcaption>
+  </figure>
+  <figure>
+    <p class="figtitle">What Python does with <code>2 * a</code></p>
+    <div class="controls">
+      <button class="btn sm" type="button" id="rm-next">Next →</button>
+      <button class="btn ghost sm" type="button" id="rm-reset">Reset</button>
+    </div>
+    <pre class="nb" id="rm-out"></pre>
+    <figcaption><code>a * 2</code> works because <code>a.__mul__(2)</code> wraps the 2 in a Value. <code>2 * a</code> asks the number 2 first, and a plain number doesn't know about Values. So Python tries the backup: <code>a.__rmul__(2)</code>.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><b>Mixing in plain numbers (1:28:15):</b> <code>a + 1</code> fails because <code>1</code> has no <code>.data</code>. Fix: if <code>other</code> isn't a Value, wrap it: <code>Value(other)</code>.</li>
+      <li><b><code>__rmul__</code> (1:29:26):</b> the "reflected" multiply. Python calls it when the left side doesn't know how to multiply.</li>
+      <li><b>exp:</b> the derivative of <var>e</var><sup><var>x</var></sup> is <var>e</var><sup><var>x</var></sup> itself, so <code>self.grad += out.data * out.grad</code>.</li>
+      <li><b>Division</b> is rewritten as <var>a</var> × <var>b</var><sup>−1</sup>, so he only needs a power operation. Its local slope is the power rule: <var>k</var>·<var>x</var><sup><var>k</var>−1</sup>.</li>
+      <li><b>Subtraction</b> is <var>a</var> + (−<var>b</var>), and −<var>b</var> is <var>b</var> × −1.</li>
+      <li>Then tanh = (<var>e</var><sup>2<var>x</var></sup> − 1)/(<var>e</var><sup>2<var>x</var></sup> + 1), and the gradients match the single tanh node.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>Any operation, small or big, is fine as long as it has a forward and a local backward. PyTorch has both tiny operations and big fused ones for speed. You will meet this again when Karpathy writes a whole layer's backward pass by hand in lecture 5 ("backprop ninja").</p>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <table class="notation">
+    <thead><tr><th>Karpathy writes</th><th>In another language (Arabic)</th></tr></thead>
+    <tbody>
+      <tr><td>d/d<var>x</var> <var>x</var><sup><var>n</var></sup> = <var>n</var>·<var>x</var><sup><var>n</var>−1</sup></td><td class="ar" lang="ar">د/دس (س<sup>ن</sup>) = ن س<sup>ن−١</sup></td></tr>
+      <tr><td>d/d<var>x</var> <var>e</var><sup><var>x</var></sup> = <var>e</var><sup><var>x</var></sup></td><td class="ar" lang="ar">د/دس (هـ<sup>س</sup>) = هـ<sup>س</sup></td></tr>
+      <tr><td><var>a</var> / <var>b</var> = <var>a</var> · <var>b</var><sup>−1</sup></td><td class="ar" lang="ar">أ ÷ ب = أ × ب<sup>−١</sup></td></tr>
+    </tbody>
+  </table>
+  <p class="note plain" style="margin-top:10px">Careful: in Arabic school notation both <var>h</var> (the nudge) and <var>e</var> (Euler's number, 2.718…) are written <span class="ar" lang="ar">هـ</span>. In Karpathy's code they're different things: <code>h</code> is the tiny step, <code>math.exp(x)</code> is <var>e</var><sup><var>x</var></sup>.</p>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">exponential</span><span class="ar" lang="ar">الدالة الأسية</span><span class="mn"><var>e</var><sup><var>x</var></sup>, with <var>e</var> ≈ 2.718</span></div>
+    <div class="w"><span class="en">power rule</span><span class="ar" lang="ar">قاعدة القوة</span><span class="mn">the slope of <var>x</var><sup><var>n</var></sup> is <var>n</var>·<var>x</var><sup><var>n</var>−1</sup></span></div>
+    <div class="w"><span class="en">reciprocal</span><span class="ar" lang="ar">المقلوب</span><span class="mn">1 / <var>x</var>, the same as <var>x</var><sup>−1</sup></span></div>
+    <div class="w"><span class="en">negation</span><span class="ar" lang="ar">المعكوس الجمعي (السالب)</span><span class="mn">−<var>x</var></span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="5225">1:27:05</a><span>tanh built from exp.</span></li>
+    <li><a data-v="k" data-t="5295">1:28:15</a><span><code>a + 1</code> fails; wrap plain numbers in Value.</span></li>
+    <li><a data-v="k" data-t="5366">1:29:26</a><span><code>2 * a</code> and <code>__rmul__</code>.</span></li>
+    <li><a data-v="k" data-t="5437">1:30:37</a><span>exp and its backward.</span></li>
+    <li><a data-v="k" data-t="5508">1:31:48</a><span>Division as <code>a * b**-1</code>.</span></li>
+    <li><a data-v="k" data-t="5649">1:34:09</a><span>The power rule: <var>n</var>·<var>x</var><sup><var>n</var>−1</sup>.</span></li>
+    <li><a data-v="k" data-t="5756">1:35:56</a><span>Subtraction as <code>a + (-b)</code>.</span></li>
+    <li><a data-v="k" data-t="5820">1:37:00</a><span>The long graph gives the same forward pass…</span></li>
+    <li><a data-v="k" data-t="5890">1:38:10</a><span>…and the same gradients.</span></li>
+    <li><a data-v="k" data-t="5926">1:38:46</a><span>The level of your operations is up to you.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>What is the local slope of <code>x ** -1</code> at <var>x</var> = 4?</summary>
+    <div class="ans">Power rule: −1 · 4<sup>−2</sup> = −1/16 = −0.0625.</div></details>
+  <details class="check"><summary>Why does Python need <code>__rmul__</code> at all?</summary>
+    <div class="ans">For <code>2 * a</code>, Python first asks the number 2 to multiply by a Value, and it can't. Instead of giving up, Python asks the right-hand object: <code>a.__rmul__(2)</code>, which just returns <code>a * 2</code>.</div></details>
+</section>
+
+<!-- ================= PYTORCH ================= -->
+<section class="st" id="s-torch">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="5971">▶ 1:39:31 – 1:43:55</a><span>Chapter 13 · "doing the same thing but in PyTorch: comparison"</span></div>
+    <h2>The same neuron in PyTorch</h2>
+    <p class="lead"><b>PyTorch's API matches micrograd almost name for name. The difference: PyTorch values are tensors, whole grids of numbers handled in one go.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="stage short" id="tensor3d"></div>
+    <div class="sliders three">
+      <div class="slider"><label for="tn-r">rows</label><input type="range" id="tn-r" min="1" max="6" step="1" value="2"><output></output></div>
+      <div class="slider"><label for="tn-c">cols</label><input type="range" id="tn-c" min="1" max="6" step="1" value="3"><output></output></div>
+      <div class="slider"><label for="tn-d">depth</label><input type="range" id="tn-d" min="1" max="6" step="1" value="1"><output></output></div>
+    </div>
+    <dl class="readout" id="tn-read"></dl>
+    <figcaption>Each cube is one scalar, one micrograd <code>Value</code>. A tensor packs them into a grid. Set all three sliders to 1 and you have what Karpathy makes at 1:40:42: a tensor with a single element. At 2 × 3 × 1 you have his 2-by-3 example.</figcaption>
+  </figure>
+
+  <h3>micrograd ↔ PyTorch</h3>
+  <div class="tablewrap">
+  <table class="notation ltr">
+    <thead><tr><th>micrograd</th><th>PyTorch</th></tr></thead>
+    <tbody>
+      <tr><td><code>Value(2.0)</code></td><td><code>torch.Tensor([2.0]).double()</code></td></tr>
+      <tr><td>every Value tracks gradients</td><td><code>x.requires_grad = True</code> (off by default, for speed)</td></tr>
+      <tr><td><code>o.data</code></td><td><code>o.data</code>, or <code>o.item()</code> for a plain Python number</td></tr>
+      <tr><td><code>o.backward()</code></td><td><code>o.backward()</code></td></tr>
+      <tr><td><code>x2.grad</code></td><td><code>x2.grad</code> (a tensor) → <code>x2.grad.item()</code></td></tr>
+      <tr><td><code>n.tanh()</code></td><td><code>torch.tanh(n)</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><code>.double()</code> switches from 32-bit floats (PyTorch's default) to 64-bit, the same precision as Python's floats, so the numbers match micrograd exactly.</li>
+      <li>Leaves don't track gradients by default, because usually you don't need gradients for input data. So he turns it on for each one.</li>
+      <li>Result: forward 0.7071, gradients 0.5, 0, −1.5, 1. PyTorch agrees with micrograd.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>From lecture 2 (makemore) on, you'll use PyTorch tensors for everything. Each time you call <code>.backward()</code>, picture this lecture's graph, with each box holding a whole grid instead of one number.</p>
+  </div>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">tensor</span><span class="ar" lang="ar">موتِّر</span><span class="mn">an n-dimensional grid of numbers</span></div>
+    <div class="w"><span class="en">shape</span><span class="ar" lang="ar">الشكل (الأبعاد)</span><span class="mn">how many numbers along each direction, like (2, 3)</span></div>
+    <div class="w"><span class="en">precision, double</span><span class="ar" lang="ar">الدقة، دقة مضاعفة</span><span class="mn">how many digits a float keeps; double = 64-bit</span></div>
+    <div class="w"><span class="en">parallel</span><span class="ar" lang="ar">على التوازي</span><span class="mn">many calculations at the same time</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="5971">1:39:31</a><span>The neuron rewritten in PyTorch.</span></li>
+    <li><a data-v="k" data-t="6042">1:40:42</a><span>Tensors: a 2×3 example and its shape.</span></li>
+    <li><a data-v="k" data-t="6077">1:41:17</a><span><code>.double()</code> for float64.</span></li>
+    <li><a data-v="k" data-t="6113">1:41:53</a><span><code>requires_grad = True</code>.</span></li>
+    <li><a data-v="k" data-t="6148">1:42:28</a><span><code>.item()</code> pulls out the number.</span></li>
+    <li><a data-v="k" data-t="6171">1:42:51</a><span>PyTorch agrees: 0.707, then 0.5, 0, −1.5, 1.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Why does he call <code>.double()</code>?</summary>
+    <div class="ans">PyTorch defaults to 32-bit floats. Python floats are 64-bit. Using double makes PyTorch's numbers match micrograd's digit for digit.</div></details>
+</section>
+
+<!-- ================= MLP ================= -->
+<section class="st" id="s-mlp">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="6235">▶ 1:43:55 – 1:51:04</a><span>Chapter 14 · "building out a neural net library (multi-layer perceptron) in micrograd"</span></div>
+    <h2>Neuron, Layer, MLP</h2>
+    <p class="lead"><b>A Layer is a list of neurons that all read the same inputs. An MLP is layers in a row, each feeding the next. Karpathy's <code>MLP(3, [4, 4, 1])</code> has 41 knobs.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="stage tall" id="mlp3d"></div>
+    <div class="sliders three">
+      <div class="slider"><label for="ml-x1">x₁</label><input type="range" id="ml-x1" min="-3" max="3" step="0.1" value="2"><output></output></div>
+      <div class="slider"><label for="ml-x2">x₂</label><input type="range" id="ml-x2" min="-3" max="3" step="0.1" value="3"><output></output></div>
+      <div class="slider"><label for="ml-x3">x₃</label><input type="range" id="ml-x3" min="-3" max="3" step="0.1" value="-1"><output></output></div>
+    </div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="ml-fwd">▶ Forward pass</button>
+      <button class="btn ghost sm" type="button" id="ml-rand">New random weights</button>
+    </div>
+    <dl class="readout" id="ml-read"></dl>
+    <figcaption>Every sphere is a neuron and every rod is a weight: <b class="c-ok">green</b> positive, <b class="c-neg">red</b> negative, thicker means bigger. A neuron's colour is its output (−1 red, 0 grey, +1 green). <b>Click a neuron</b> to see the calculation inside it. Inputs start at Karpathy's <code>x = [2.0, 3.0, -1.0]</code>. The weights are random, like his, so the output won't match his number.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><code>Neuron(nin)</code>: one random weight in [−1, 1] per input, plus a random bias. Calling it computes <code>tanh(w·x + b)</code>.</li>
+      <li><code>Layer(nin, nout)</code>: <code>nout</code> independent neurons, all reading the same inputs.</li>
+      <li><code>MLP(nin, nouts)</code>: the sizes [3, 4, 4, 1] become layers 3→4, 4→4 and 4→1, called one after another.</li>
+      <li>He matches PyTorch's style: calling the object like a function (<code>n(x)</code>) runs <code>__call__</code>.</li>
+      <li>The last layer has one neuron, so he returns the single Value instead of a list of one.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>This is 3Blue1Brown's digit network <a class="xref" data-v="c1" data-t="917"><span class="who">3B1B 1 ·</span> 15:17</a> in miniature: 3 inputs instead of 784, two hidden layers of 4 instead of 16, and one output instead of 10. Same structure. A GPT also contains MLP blocks exactly like this, just much wider.</p>
+  </div>
+
+  <h3>The Python in this chapter</h3>
+  <ul class="pybox">
+    <li><code>__call__(self, x)</code><span>makes the object callable: <code>n(x)</code> runs it.</span></li>
+    <li><code>zip(self.w, x)</code><span>pairs things up: (w₀, x₀), (w₁, x₁), …</span></li>
+    <li><code>sum((wi*xi for ...), self.b)</code><span>add them all, starting from <code>self.b</code> instead of 0.</span></li>
+    <li><code>[Neuron(nin) for _ in range(nout)]</code><span>a list comprehension: build a list in one line.</span></li>
+    <li><code>random.uniform(-1, 1)</code><span>a random decimal between −1 and 1.</span></li>
+  </ul>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">layer</span><span class="ar" lang="ar">طبقة</span><span class="mn">a group of neurons that read the same inputs</span></div>
+    <div class="w"><span class="en">hidden layer</span><span class="ar" lang="ar">طبقة مخفية</span><span class="mn">a layer between the input and the output</span></div>
+    <div class="w"><span class="en">fully connected</span><span class="ar" lang="ar">متصلة بالكامل</span><span class="mn">every neuron sees every input of its layer</span></div>
+    <div class="w"><span class="en">multi-layer perceptron</span><span class="ar" lang="ar">شبكة متعددة الطبقات (MLP)</span><span class="mn">layers of neurons in a row</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="6235">1:43:55</a><span>Toward a neural net library.</span></li>
+    <li><a data-v="k" data-t="6271">1:44:31</a><span><code>class Neuron</code>: random weights and bias.</span></li>
+    <li><a data-v="k" data-t="6341">1:45:41</a><span><code>__call__</code>.</span></li>
+    <li><a data-v="k" data-t="6376">1:46:16</a><span><code>zip</code> pairs weights with inputs.</span></li>
+    <li><a data-v="k" data-t="6447">1:47:27</a><span><code>sum(..., self.b)</code>.</span></li>
+    <li><a data-v="k" data-t="6482">1:48:02</a><span><code>class Layer</code>.</span></li>
+    <li><a data-v="k" data-t="6553">1:49:13</a><span><code>class MLP</code>: 3 inputs, two layers of 4, one output.</span></li>
+    <li><a data-v="k" data-t="6623">1:50:23</a><span>Return a single value when there's one output.</span></li>
+    <li><a data-v="k" data-t="6658">1:50:58</a><span><code>draw_dot</code> of the whole MLP.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>How many weights does one neuron in the second hidden layer have, and why?</summary>
+    <div class="ans">4, plus 1 bias. It reads all 4 outputs of the first hidden layer, one weight each.</div></details>
+</section>
+
+<!-- ================= LOSS ================= -->
+<section class="st" id="s-loss">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="6664">▶ 1:51:04 – 1:57:56</a><span>Chapter 15 · "creating a tiny dataset, writing the loss function"</span></div>
+    <h2>A tiny dataset and the loss</h2>
+    <p class="lead"><b>Four examples, four targets. The loss squeezes how wrong all four predictions are into one number: square each error, then add them up.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="sq-wrap"><svg id="ls-svg" viewBox="0 0 740 300" style="min-width:560px" role="img" aria-label="Four predictions and their targets. Each error is drawn as a square; the loss is the total area."></svg></div>
+    <div class="controls">
+      <button class="btn ghost sm" type="button" id="ls-his">His starting predictions</button>
+      <button class="btn ghost sm" type="button" id="ls-perfect">Perfect predictions</button>
+      <span class="lbltxt">Drag the blue dots up and down.</span>
+    </div>
+    <dl class="readout" id="ls-read"></dl>
+    <figcaption>Dashed lines are the targets <code>ys = [1.0, -1.0, -1.0, 1.0]</code>. Blue dots are predictions. Each orange square has sides equal to the error, so its area is the error squared. The loss is the total area. It's 0 only when every dot sits on its target.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>The data: <code>xs</code> holds 4 inputs of 3 numbers each; <code>ys</code> holds the 4 answers we want: 1, −1, −1, 1. A tiny <b>binary classifier</b>.</li>
+      <li>The untrained network gives about 0.92, 0.89, 0.80, 0.81. The first is close; the middle two are badly wrong.</li>
+      <li>For each example: (prediction − target)², then add them. He calls it mean squared error, though he takes the sum, not the mean. That's fine; it only scales the loss.</li>
+      <li>Squaring throws away the sign: too high and too low both count as wrong. It also punishes big errors much more than small ones.</li>
+      <li><code>loss.backward()</code> fills in <code>.grad</code> for all 41 parameters. One weight has a negative gradient, so increasing it lowers the loss.</li>
+      <li>The input data gets gradients too, but they're useless: we can't change the data.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>This is 3Blue1Brown's cost function <a class="xref" data-v="c2" data-t="231"><span class="who">3B1B 2 ·</span> 3:51</a>: add up the squares of the differences. In your GPT the loss will be <b>cross-entropy</b> instead (2:16:24), because it predicts which token comes next, not a number.</p>
+  </div>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">dataset</span><span class="ar" lang="ar">مجموعة البيانات</span><span class="mn">the examples we learn from</span></div>
+    <div class="w"><span class="en">target, ground truth</span><span class="ar" lang="ar">القيمة المستهدفة</span><span class="mn">the right answer for an example</span></div>
+    <div class="w"><span class="en">prediction</span><span class="ar" lang="ar">التنبؤ</span><span class="mn">what the network says</span></div>
+    <div class="w"><span class="en">squared error</span><span class="ar" lang="ar">مربع الخطأ</span><span class="mn">(prediction − target)²</span></div>
+    <div class="w"><span class="en">mean</span><span class="ar" lang="ar">المتوسط</span><span class="mn">the sum divided by how many</span></div>
+    <div class="w"><span class="en">binary classifier</span><span class="ar" lang="ar">مصنِّف ثنائي</span><span class="mn">sorts inputs into two groups (here +1 or −1)</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="6664">1:51:04</a><span>Four examples and their targets.</span></li>
+    <li><a data-v="k" data-t="6699">1:51:39</a><span>What the untrained net predicts.</span></li>
+    <li><a data-v="k" data-t="6735">1:52:15</a><span>The loss: one number for "how well".</span></li>
+    <li><a data-v="k" data-t="6770">1:52:50</a><span>Mean squared error, written with <code>zip</code>.</span></li>
+    <li><a data-v="k" data-t="6840">1:54:00</a><span>Squaring discards the sign.</span></li>
+    <li><a data-v="k" data-t="6875">1:54:35</a><span>Loss ≈ 7.</span></li>
+    <li><a data-v="k" data-t="6910">1:55:10</a><span><code>loss.backward()</code>: "something magical happened".</span></li>
+    <li><a data-v="k" data-t="6945">1:55:45</a><span>One weight's gradient is negative: increasing it lowers the loss.</span></li>
+    <li><a data-v="k" data-t="6980">1:56:20</a><span>The massive graph: four forward passes plus the loss.</span></li>
+    <li><a data-v="k" data-t="7050">1:57:30</a><span>Gradients on the data aren't useful.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Why square the error instead of just using prediction − target?</summary>
+    <div class="ans">Without squaring, errors of +2 and −2 would cancel out to 0 and the loss would say "perfect". Squaring makes every error positive and punishes big misses more.</div></details>
+</section>
+
+<!-- ================= PARAMS ================= -->
+<section class="st" id="s-params">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="7076">▶ 1:57:56 – 2:01:12</a><span>Chapter 16 · "collecting all of the parameters of the neural net"</span></div>
+    <h2>Collecting the parameters</h2>
+    <p class="lead"><b>To nudge every knob you first need a list of them. <code>parameters()</code> walks the whole MLP and returns every weight and bias.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="sliders">
+      <div class="slider"><label for="pc-in">inputs</label><input type="range" id="pc-in" min="1" max="8" step="1" value="3"><output></output></div>
+      <div class="slider"><label for="pc-l1">layer 1</label><input type="range" id="pc-l1" min="1" max="16" step="1" value="4"><output></output></div>
+      <div class="slider"><label for="pc-l2">layer 2</label><input type="range" id="pc-l2" min="1" max="16" step="1" value="4"><output></output></div>
+      <div class="slider"><label for="pc-l3">output</label><input type="range" id="pc-l3" min="1" max="10" step="1" value="1"><output></output></div>
+    </div>
+    <svg id="pc-svg" viewBox="0 0 640 150" role="img" aria-label="Parameter count per layer: neurons times inputs plus one bias each."></svg>
+    <dl class="readout" id="pc-read"></dl>
+    <figcaption>Each neuron owns one weight per input plus one bias. Karpathy's <code>MLP(3, [4, 4, 1])</code> gives 4×(3+1) + 4×(4+1) + 1×(4+1) = 16 + 20 + 5 = <b>41</b>. Try 784, 16, 16, 10 in your head: that's 3Blue1Brown's 13,002.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li><code>Neuron.parameters()</code> returns <code>self.w + [self.b]</code>.</li>
+      <li><code>Layer.parameters()</code> collects every neuron's list into one, and <code>MLP.parameters()</code> collects every layer's.</li>
+      <li>He first writes it with loops and <code>extend</code>, then squeezes it into one nested list comprehension.</li>
+      <li>He has to re-create the network after adding the method, so the random weights (and his numbers) change.</li>
+    </ul>
+  </div>
+  <ul class="pybox" style="margin-top:12px">
+    <li><code>[p for n in self.neurons for p in n.parameters()]</code><span>a nested list comprehension: read it left to right as two for-loops, outer first.</span></li>
+    <li><code>params.extend(ps)</code><span>add every item of <code>ps</code> to <code>params</code>.</span></li>
+  </ul>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="7076">1:57:56</a><span>Gather every parameter in one list.</span></li>
+    <li><a data-v="k" data-t="7111">1:58:31</a><span><code>parameters()</code> on Neuron, like PyTorch's.</span></li>
+    <li><a data-v="k" data-t="7147">1:59:07</a><span>Layer's version with <code>extend</code>.</span></li>
+    <li><a data-v="k" data-t="7182">1:59:42</a><span>As a nested list comprehension.</span></li>
+    <li><a data-v="k" data-t="7256">2:00:56</a><span>41 parameters.</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Without the slider: how many parameters does <code>MLP(2, [3, 1])</code> have?</summary>
+    <div class="ans">3×(2+1) + 1×(3+1) = 9 + 4 = <b>13</b>.</div></details>
+</section>
+
+<!-- ================= TRAIN ================= -->
+<section class="st" id="s-train">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="7272">▶ 2:01:12 – 2:14:03</a><span>Chapter 17 · "doing gradient descent optimization manually, training the network"</span></div>
+    <h2>Training: gradient descent for real</h2>
+    <p class="lead"><b>Forward, loss, zero the grads, backward, update, repeat. Below, a real micrograd (rewritten in JavaScript, rule for rule) trains Karpathy's network on his four examples while you watch.</b></p>
+  </div>
+
+  <h3>Play with it</h3>
+  <figure>
+    <div class="strip" id="tr-strip" aria-label="The training loop">
+      <span class="s fwd" data-k="fwd">forward<small>4 predictions</small></span><span class="ar2">→</span>
+      <span class="s loss" data-k="loss">loss<small>sum of squares</small></span><span class="ar2">→</span>
+      <span class="s bwd mg" data-k="bwd">zero_grad + backward<small>41 gradients</small></span><span class="ar2">→</span>
+      <span class="s upd" data-k="upd">update<small>p.data −= lr × p.grad</small></span><span class="ar2">↺</span>
+    </div>
+    <div class="stage" id="tr3d"></div>
+    <div class="two even">
+      <svg id="tr-loss" viewBox="0 0 320 200" role="img" aria-label="Loss after each training step."></svg>
+      <svg id="tr-pred" viewBox="0 0 320 200" role="img" aria-label="The four predictions moving toward their targets."></svg>
+    </div>
+    <div class="slider"><label for="tr-lr">lr</label><input type="range" id="tr-lr" min="0.01" max="0.5" step="0.01" value="0.05"><output></output></div>
+    <div class="controls">
+      <button class="btn sm" type="button" id="tr-step">One step</button>
+      <button class="btn sm" type="button" id="tr-play">▶ Train</button>
+      <button class="btn ghost sm" type="button" id="tr-reset">New network</button>
+      <span class="spacer"></span>
+      <label class="chk"><input type="checkbox" id="tr-bug"> forget <code>zero_grad</code> (his bug)</label>
+    </div>
+    <dl class="readout" id="tr-read"></dl>
+    <figcaption>The 3D network is the one being trained: watch the rods change colour and thickness as the weights move. Try a learning rate of 0.01 (slow), 0.05 (his choice), then 0.5 (too big). Then tick the bug box and train a fresh network: the gradients pile up step after step, which acts like a much bigger step size.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>The update: <code>p.data += -0.01 * p.grad</code> for all 41 parameters. <b>The minus sign</b> (2:02:58): the gradient points uphill (toward a bigger loss), and we want to go down.</li>
+      <li>Check: one weight was 0.854 with a negative gradient. After the step it's 0.857: it went up, which lowers the loss.</li>
+      <li>Repeat forward → backward → update and the loss falls: 4.84, 4.36, 3.9, 3.66, …</li>
+      <li><b>Learning rate:</b> too small is slow; too big can overshoot and "blow up". 0.01 was too small and 0.1 "dangerously" high, so he uses 0.05.</li>
+      <li><b>The bug (2:10:38):</b> he forgot to reset the grads to 0 before <code>backward()</code>. Because backward uses <code>+=</code>, every step's gradients piled on top of the old ones. It only "worked" because the problem is so easy.</li>
+      <li>The fix: <code>for p in n.parameters(): p.grad = 0.0</code> before each backward. In PyTorch that's <code>zero_grad()</code>.</li>
+    </ul>
+  </div>
+  <div class="why" style="margin-top:14px">
+    <p>This is the exact loop that trains a GPT of your own later. The pieces get upgraded: Adam instead of this plain update, cross-entropy instead of squared error, random batches of examples instead of all of them at once. But it is still forward, loss, zero_grad, backward, update, repeat. And this is where the 3D landscape at the top of the page comes alive: the network is a ball rolling down a 41-dimensional hill.</p>
+  </div>
+  <div class="words" style="margin-top:12px">
+    <div class="w"><span class="en">gradient descent</span><span class="ar" lang="ar">الانحدار التدرجي</span><span class="mn">repeatedly step against the gradient</span></div>
+    <div class="w"><span class="en">learning rate</span><span class="ar" lang="ar">معدل التعلم</span><span class="mn">the step size, <code>lr</code></span></div>
+    <div class="w"><span class="en">iteration, step</span><span class="ar" lang="ar">تكرار، خطوة</span><span class="mn">one round of forward, backward, update</span></div>
+    <div class="w"><span class="en">converge</span><span class="ar" lang="ar">يتقارب</span><span class="mn">settle toward a low loss</span></div>
+    <div class="w"><span class="en">overshoot, blow up</span><span class="ar" lang="ar">يتجاوز، ينفجر</span><span class="mn">step past the valley / the loss shoots up</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="7272">2:01:12</a><span>Change every parameter a little using its gradient.</span></li>
+    <li><a data-v="k" data-t="7307">2:01:47</a><span>The update loop over <code>n.parameters()</code>.</span></li>
+    <li><a data-v="k" data-t="7343">2:02:23</a><span>Step size 0.01 × grad.</span></li>
+    <li><a data-v="k" data-t="7378">2:02:58</a><span>The missing minus sign.</span></li>
+    <li><a data-v="k" data-t="7448">2:04:08</a><span>0.854 → 0.857: the right direction.</span></li>
+    <li><a data-v="k" data-t="7484">2:04:44</a><span>Loss 4.84 → 4.36.</span></li>
+    <li><a data-v="k" data-t="7520">2:05:20</a><span>Iterate: forward, backward, update.</span></li>
+    <li><a data-v="k" data-t="7590">2:06:30</a><span>Too big a step can overshoot.</span></li>
+    <li><a data-v="k" data-t="7731">2:08:51</a><span>A real training loop.</span></li>
+    <li><a data-v="k" data-t="7838">2:10:38</a><span>The bug: forgot to zero_grad.</span></li>
+    <li><a data-v="k" data-t="7910">2:11:50</a><span>The fix: reset every <code>p.grad</code> to 0.</span></li>
+    <li><a data-v="k" data-t="7981">2:13:01</a><span>Why the buggy version still "worked".</span></li>
+  </ol>
+
+  <h3>Check yourself</h3>
+  <details class="check"><summary>Why is there a minus sign in <code>p.data += -lr * p.grad</code>?</summary>
+    <div class="ans">The gradient points in the direction that makes the loss bigger. We want it smaller, so we step the opposite way.</div></details>
+  <details class="check"><summary>What exactly goes wrong if you forget zero_grad?</summary>
+    <div class="ans">Each backward pass adds (<code>+=</code>) its gradients on top of the previous step's. The grads grow and stop describing the current position, so the steps get bigger and point the wrong way.</div></details>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="st" id="s-summary">
+  <div class="st-head">
+    <div class="st-meta"><a class="time" data-v="k" data-t="8043">▶ 2:14:03 – 2:25:52</a><span>Chapters 18–22 · summary, the real micrograd, PyTorch's tanh, conclusion</span></div>
+    <h2>The whole thing in one breath, and what's next</h2>
+    <p class="lead"><b>A neural net is a math expression of the data and the weights. A loss measures it. Backprop finds every weight's slope. Gradient descent follows the slopes downhill. GPT is the same idea at a far bigger scale.</b></p>
+  </div>
+
+  <h3>Same principles, bigger numbers</h3>
+  <figure>
+    <svg id="sc-svg" viewBox="0 0 640 230" role="img" aria-label="Parameter counts on a log scale: micrograd's 41, 3Blue1Brown's 13,002, GPT-2 small 124 million, GPT-3 175 billion."></svg>
+    <figcaption>Each step to the right is a thousand times more parameters. The training loop is identical at every size.</figcaption>
+  </figure>
+
+  <h3>What he means</h3>
+  <div class="prose">
+    <ul>
+      <li>The loss is built so that low loss means the network does what you want. Backprop plus gradient descent push it down.</li>
+      <li>GPT: take a few words and predict the next one, trained on internet text, with hundreds of billions of parameters. It uses cross-entropy loss and a fancier update rule, but the same Value-and-gradient idea.</li>
+      <li><b>The real micrograd on GitHub (2:16:46)</b> has what you built, plus ReLU (another activation), a <code>Module</code> base class with <code>zero_grad()</code>, and a test that compares against PyTorch.</li>
+      <li>Its demo notebook (beyond this lecture, optional) trains on a bigger 2D dataset with <b>batches</b> (a random handful of examples per step), a different loss, <b>L2 regularization</b> and <b>learning rate decay</b> (big steps at first, smaller later). Each of these returns later in the series.</li>
+      <li><b>PyTorch's tanh backward (2:21:10):</b> buried deep in a huge codebase, but it's the same line: grad × (1 − <var>t</var>²).</li>
+    </ul>
+  </div>
+
+  <h3>Words and refreshers</h3>
+  <div class="words">
+    <div class="w"><span class="en">ReLU</span><span class="ar" lang="ar">دالة ReLU</span><span class="mn">max(0, <var>x</var>): zero for negatives, unchanged for positives</span></div>
+    <div class="w"><span class="en">batch</span><span class="ar" lang="ar">دفعة</span><span class="mn">a random subset of examples used for one step</span></div>
+    <div class="w"><span class="en">cross-entropy</span><span class="ar" lang="ar">الإنتروبيا المتقاطعة</span><span class="mn">the loss for predicting which item (token) comes next</span></div>
+    <div class="w"><span class="en">regularization</span><span class="ar" lang="ar">التنظيم</span><span class="mn">a penalty that stops weights from growing wild (overfitting)</span></div>
+    <div class="w"><span class="en">learning rate decay</span><span class="ar" lang="ar">تناقص معدل التعلم</span><span class="mn">shrinking the step size as training goes on</span></div>
+  </div>
+
+  <h3>Moments to watch</h3>
+  <ol class="moments">
+    <li><a data-v="k" data-t="8043">2:14:03</a><span>Summary: what neural nets are.</span></li>
+    <li><a data-v="k" data-t="8113">2:15:13</a><span>Billions, almost trillions, of parameters.</span></li>
+    <li><a data-v="k" data-t="8148">2:15:48</a><span>GPT: predict the next word.</span></li>
+    <li><a data-v="k" data-t="8184">2:16:24</a><span>Cross-entropy loss, fancier updates, same principles.</span></li>
+    <li><a data-v="k" data-t="8206">2:16:46</a><span>Walkthrough of micrograd on GitHub.</span></li>
+    <li><a data-v="k" data-t="8241">2:17:21</a><span>ReLU instead of tanh.</span></li>
+    <li><a data-v="k" data-t="8311">2:18:31</a><span>The test against PyTorch.</span></li>
+    <li><a data-v="k" data-t="8346">2:19:06</a><span>The demo notebook: batches.</span></li>
+    <li><a data-v="k" data-t="8416">2:20:16</a><span>Learning rate decay.</span></li>
+    <li><a data-v="k" data-t="8470">2:21:10</a><span>Hunting for tanh's backward inside PyTorch.</span></li>
+    <li><a data-v="k" data-t="8575">2:22:55</a><span>Found it: grad × (1 − <var>b</var>²).</span></li>
+    <li><a data-v="k" data-t="8610">2:23:30</a><span>Registering your own function in PyTorch.</span></li>
+  </ol>
+
+  <h3>Before you call it understood</h3>
+  <p class="prose">A good bar: you can explain it out loud without notes. Answer these five out loud, then open them to compare.</p>
+  <details class="check"><summary>1 · What does <code>a.grad = 6</code> tell you, in one sentence?</summary>
+    <div class="ans">If you nudge <var>a</var> up by a tiny amount, the output goes up by about 6 times that amount.</div></details>
+  <details class="check"><summary>2 · Why do gradients flow backwards and not forwards?</summary>
+    <div class="ans">We want the output's sensitivity to every node. The output's gradient on itself is 1, and each node's gradient can be computed from its parent's (chain rule). So we start at the output and work back to the leaves.</div></details>
+  <details class="check"><summary>3 · What are the local rules for + and ×?</summary>
+    <div class="ans">+ passes the gradient through unchanged (local slope 1). × gives each input the other input's value times the upstream gradient.</div></details>
+  <details class="check"><summary>4 · Why <code>+=</code> in <code>_backward</code>, and why zero_grad before each backward?</summary>
+    <div class="ans"><code>+=</code> adds up contributions when a value is used in several places. Because of that, old gradients from the previous step would pile up too, so they must be reset to 0 first.</div></details>
+  <details class="check"><summary>5 · Describe one training step of the MLP from start to finish.</summary>
+    <div class="ans">Forward the four inputs to get predictions; compute the loss (sum of squared errors); zero every grad; <code>loss.backward()</code>; move every parameter a small step against its gradient (<code>p.data -= lr * p.grad</code>).</div></details>
+</section>
+
+<footer>An Explorables example, built from the full transcripts and screen frames of Karpathy's lecture and 3Blue1Brown's chapters 1 and 2. The training demo runs a JavaScript copy of micrograd in your browser. Times link to YouTube.</footer>
+</main>

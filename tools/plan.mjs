@@ -30,16 +30,19 @@ export function validatePlan(plan) {
         lastT = Math.max(lastT, m.t);
       } else if (m.page == null && m.t == null) out.push(`landmark in ${s.id} needs a page (or t)`);
     }
-    if (isVideo && s.chapter && !(s.chapter[0] >= 0 && s.chapter[0] <= plan.source.duration)) out.push(`chapter start of ${s.id} is outside the video`);
+    for (const c of chaptersOf(s)) if (isVideo && !(c[0] >= 0 && c[0] <= plan.source.duration)) out.push(`chapter ${c[0]} of ${s.id} is outside the video`);
   }
   for (const id of plan.mustRead || []) if (!ids.has(id)) out.push(`mustRead ${id} is not a section`);
   return out;
 }
 
+// a section names one lecture chapter (`chapter: [t, title]`) or several (`chapters: [[t, title], ...]`)
+const chaptersOf = s => (s.chapters || (s.chapter ? [s.chapter] : []));
+
 export function pageConfig(plan) {
   const chapters = [], anchors = {}, actions = {};
   for (const s of plan.sections) {
-    if (s.chapter) chapters.push([s.chapter[0], s.chapter[1], s.id]);
+    for (const c of chaptersOf(s)) chapters.push([c[0], c[1], s.id]);
     for (const m of s.moments || []) {
       if (m.t == null) continue;
       if (m.anchor) anchors[m.t] = m.anchor;

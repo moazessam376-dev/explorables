@@ -1,0 +1,1181 @@
+{
+  "id": "micrograd",
+  "title": "Micrograd Companion",
+  "subtitle": "Karpathy · Lecture 1",
+  "source": {
+    "kind": "video",
+    "provider": "youtube",
+    "id": "VMj-3S1tku0",
+    "duration": 8752,
+    "title": "The spelled-out intro to neural networks and backpropagation: building micrograd"
+  },
+  "refs": {
+    "k": "VMj-3S1tku0",
+    "c1": "aircAruvnKk",
+    "c2": "IHZwWFHWa-w",
+    "c3": "Ilg3gGewQ5U",
+    "c4": "tIeHLnjs5U8"
+  },
+  "mustRead": [
+    "s-big"
+  ],
+  "sections": [
+    {
+      "id": "s-big",
+      "title": "The one loop behind all of it",
+      "pictures": [
+        {
+          "id": "loop-strip",
+          "proves": "Two weights, w₁ and w₂, and the loss for every pair of values: this is 3Blue1Brown's hill at 3B1B 2 · 7:22, made touchable."
+        }
+      ],
+      "moments": []
+    },
+    {
+      "id": "s-overview",
+      "title": "What micrograd is",
+      "pictures": [
+        {
+          "id": "g3-over",
+          "proves": "The small expression Karpathy builds at 28:01: L = (a·b + c)·f."
+        }
+      ],
+      "moments": [
+        {
+          "t": 25,
+          "text": "micrograd is an autograd engine: it implements backpropagation."
+        },
+        {
+          "t": 95,
+          "text": "The README example: a and b wrapped in Value and built into a long expression."
+        },
+        {
+          "t": 166,
+          "text": "The forward pass: g.data is 24.7.",
+          "action": [
+            "#ov-fwd"
+          ]
+        },
+        {
+          "t": 201,
+          "text": "g.backward() walks backwards and applies the chain rule.",
+          "action": [
+            "#ov-bwd"
+          ]
+        },
+        {
+          "t": 237,
+          "text": "a.grad = 138: nudge a up and g grows with slope 138.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 264,
+          "text": "\"Neural networks are just mathematical expressions.\"",
+          "anchor": "means:4"
+        },
+        {
+          "t": 334,
+          "text": "Scalars and tensors: tensors are only for speed.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 405,
+          "text": "The whole library is two files: engine.py (about 100 lines) and nn.py.",
+          "anchor": "why"
+        }
+      ],
+      "chapters": [
+        [
+          0,
+          "intro"
+        ],
+        [
+          25,
+          "micrograd overview"
+        ]
+      ]
+    },
+    {
+      "id": "s-deriv",
+      "title": "The derivative: how much does the output react?",
+      "pictures": [
+        {
+          "id": "dv-main",
+          "proves": "Every time x moves, the slope you measured is dropped as an orange dot below."
+        }
+      ],
+      "moments": [
+        {
+          "t": 488,
+          "text": "f(x) = 3x² − 4x + 5, and f(3.0) = 20."
+        },
+        {
+          "t": 558,
+          "text": "The parabola plotted with x from −5 to 5 in steps of 0.25 (the picture above)."
+        },
+        {
+          "t": 594,
+          "text": "Why nobody writes out a network's derivative by hand.",
+          "anchor": "means"
+        },
+        {
+          "t": 629,
+          "text": "The definition on Wikipedia: the limit as h goes to 0.",
+          "anchor": "words"
+        },
+        {
+          "t": 699,
+          "text": "Nudging x = 3 by 0.001: will f go above or below 20?",
+          "action": [
+            "#s-deriv [data-x=\"3\"]"
+          ]
+        },
+        {
+          "t": 724,
+          "text": "Rise over run: divide by h.",
+          "action": [
+            "#dv-shrink"
+          ]
+        },
+        {
+          "t": 759,
+          "text": "Too many zeros in h and floating point breaks.",
+          "anchor": "#dv-read",
+          "action": [
+            "#dv-tiny"
+          ]
+        },
+        {
+          "t": 778,
+          "text": "Slope at 3 is 14, checked with 6x − 4.",
+          "action": [
+            "demo:derivReset()"
+          ]
+        },
+        {
+          "t": 788,
+          "text": "At x = −3 the slope is negative: −22.",
+          "action": [
+            "#s-deriv [data-x=\"-3\"]"
+          ]
+        },
+        {
+          "t": 817,
+          "text": "At x = 2/3 the slope is 0: the bottom.",
+          "action": [
+            "#s-deriv [data-x=\"0.6666666666666666\"]"
+          ]
+        }
+      ],
+      "chapter": [
+        488,
+        "derivative of a simple function with one input"
+      ]
+    },
+    {
+      "id": "s-multi",
+      "title": "Many inputs: wiggle one at a time",
+      "pictures": [
+        {
+          "id": "k-a",
+          "proves": "The surface is every value of d = a·b + c: a runs left–right, b runs front–back, height is d."
+        }
+      ],
+      "moments": [
+        {
+          "t": 852,
+          "text": "d = a*b + c, with a=2, b=−3, c=10, gives d = 4."
+        },
+        {
+          "t": 887,
+          "text": "Fix the inputs and pick a tiny h."
+        },
+        {
+          "t": 923,
+          "text": "d1, d2, and slope = (d2 − d1)/h.",
+          "anchor": "#m-print"
+        },
+        {
+          "t": 994,
+          "text": "Guess first: does d go up or down when a goes up?"
+        },
+        {
+          "t": 1029,
+          "text": "Down: from 4 to 3.9997. The slope is −3.",
+          "anchor": "#m-print",
+          "action": [
+            "[data-nudge=\"a\"]"
+          ]
+        },
+        {
+          "t": 1053,
+          "text": "The calculus check: the derivative of a·b + c with respect to a is b.",
+          "anchor": "means"
+        },
+        {
+          "t": 1089,
+          "text": "Bump b instead: the slope is 2, the value of a.",
+          "anchor": "means",
+          "action": [
+            "[data-nudge=\"b\"]"
+          ]
+        },
+        {
+          "t": 1124,
+          "text": "Bump c: the slope is 1.",
+          "anchor": "means",
+          "action": [
+            "[data-nudge=\"c\"]"
+          ]
+        }
+      ],
+      "chapter": [
+        852,
+        "derivative of a function with multiple inputs"
+      ]
+    },
+    {
+      "id": "s-value",
+      "title": "The Value object: numbers that remember",
+      "pictures": [
+        {
+          "id": "b-code",
+          "proves": "Run the lines one by one."
+        }
+      ],
+      "moments": [
+        {
+          "t": 1149,
+          "text": "class Value: wraps one number in .data."
+        },
+        {
+          "t": 1185,
+          "text": "__repr__ makes it print as Value(data=2.0).",
+          "anchor": "#b-code"
+        },
+        {
+          "t": 1221,
+          "text": "__add__: a + b becomes a.__add__(b).",
+          "anchor": "means:2"
+        },
+        {
+          "t": 1292,
+          "text": "__mul__: same idea for ×.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 1327,
+          "text": "a*b + c is really a.__mul__(b).__add__(c).",
+          "action": [
+            "demo:builderTo(5)"
+          ]
+        },
+        {
+          "t": 1362,
+          "text": "_children / _prev: each Value remembers its inputs."
+        },
+        {
+          "t": 1432,
+          "text": "_op: each Value remembers the operation that made it."
+        },
+        {
+          "t": 1468,
+          "text": "draw_dot: the \"slightly scary\" Graphviz code.",
+          "anchor": "#g-build"
+        },
+        {
+          "t": 1573,
+          "text": "The round op nodes are only drawing helpers.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 1608,
+          "text": "Labels: a, b, c, e, d.",
+          "anchor": "#g-build"
+        },
+        {
+          "t": 1681,
+          "text": "One layer deeper: f = −2 and L = d × f = −8.",
+          "anchor": "#g-build",
+          "action": [
+            "demo:builderTo(7)"
+          ]
+        },
+        {
+          "t": 1751,
+          "text": "Recap of the forward pass. Backprop is next.",
+          "anchor": "#g-build",
+          "action": [
+            "demo:builderTo(8)"
+          ]
+        },
+        {
+          "t": 1786,
+          "text": "grad = the derivative of L with respect to each node. dL/dL = 1.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 1821,
+          "text": "Weights are leaves we want gradients for. Data stays fixed.",
+          "anchor": "means:6"
+        },
+        {
+          "t": 1857,
+          "text": "self.grad = 0.0: start by assuming \"no effect\".",
+          "anchor": "means:5"
+        }
+      ],
+      "chapter": [
+        1149,
+        "the core Value object and its visualization"
+      ]
+    },
+    {
+      "id": "s-backprop",
+      "title": "Backprop by hand: the chain rule",
+      "pictures": [
+        {
+          "id": "g-bp",
+          "proves": "Pink is the node you're working on."
+        },
+        {
+          "id": "gears",
+          "proves": "Karpathy's example from Wikipedia at 43:11: the bicycle is 4 times as fast as the man, the car is 2 times as fast as the bicycle, so the car is 2 × 4 = 8 times as fast as the man."
+        }
+      ],
+      "moments": [
+        {
+          "t": 1930,
+          "text": "dL/dL = 1: the base case."
+        },
+        {
+          "t": 1965,
+          "text": "The lol() staging function for numerical gradients.",
+          "anchor": "#bp-print"
+        },
+        {
+          "t": 2058,
+          "text": "He sets L.grad = 1 by hand."
+        },
+        {
+          "t": 2094,
+          "text": "dL/dd = f, proved from the definition.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 2201,
+          "text": "f.grad = 4, d.grad = -2, checked numerically."
+        },
+        {
+          "t": 2272,
+          "text": "\"The crux of backpropagation\": dL/dc.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 2377,
+          "text": "The local derivative of + is 1.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 2484,
+          "text": "The chain rule on Wikipedia.",
+          "anchor": "fig2"
+        },
+        {
+          "t": 2591,
+          "text": "Car, bicycle, walking man: rates multiply.",
+          "anchor": "fig2",
+          "action": [
+            "demo:ensurePlaying(#gr-play)"
+          ]
+        },
+        {
+          "t": 2732,
+          "text": "A plus node routes the gradient.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 2838,
+          "text": "Second chain-rule step, through the × node."
+        },
+        {
+          "t": 2944,
+          "text": "a.grad = 6, b.grad = -4."
+        },
+        {
+          "t": 3015,
+          "text": "Recap: backprop is the chain rule applied backwards, node by node.",
+          "anchor": "why"
+        }
+      ],
+      "chapter": [
+        1930,
+        "manual backpropagation example #1: simple expression"
+      ]
+    },
+    {
+      "id": "s-step",
+      "title": "One optimization step",
+      "pictures": [
+        {
+          "id": "g3-step",
+          "proves": "The same 3D graph as before, already with its gradients."
+        }
+      ],
+      "moments": [
+        {
+          "t": 3070,
+          "text": "Nudge the inputs in the direction of the gradient to make L go up."
+        },
+        {
+          "t": 3106,
+          "text": "The step: a.data += 0.01 * a.grad for a, b, c and f.",
+          "action": [
+            "#stp-up"
+          ]
+        },
+        {
+          "t": 3141,
+          "text": "New forward pass: L goes from −8 to about −7.",
+          "anchor": "#stp-print"
+        }
+      ],
+      "chapter": [
+        3070,
+        "preview of a single optimization step"
+      ]
+    },
+    {
+      "id": "s-neuron",
+      "title": "Backprop through a neuron",
+      "pictures": [
+        {
+          "id": "nr-diag",
+          "proves": "Top: the neuron and its gradients, recomputed live as you move the sliders."
+        },
+        {
+          "id": "g-nr",
+          "proves": "Uses Karpathy's exact values."
+        }
+      ],
+      "moments": [
+        {
+          "t": 3172,
+          "text": "The MLP picture from the CS231n notes."
+        },
+        {
+          "t": 3208,
+          "text": "The neuron model: w·x, the cell body, the bias.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 3243,
+          "text": "The tanh plot."
+        },
+        {
+          "t": 3314,
+          "text": "A two-input neuron in code."
+        },
+        {
+          "t": 3419,
+          "text": "tanh needs exponentials, which Value doesn't have yet.",
+          "anchor": "means:6"
+        },
+        {
+          "t": 3490,
+          "text": "Any function can be a node if you know its local derivative.",
+          "anchor": "means:6"
+        },
+        {
+          "t": 3633,
+          "text": "Bias 8: tanh squashes 2 to 0.96."
+        },
+        {
+          "t": 3668,
+          "text": "b = 6.88… so the numbers come out nice.",
+          "anchor": "means:3",
+          "action": [
+            "#nr-karpathy"
+          ]
+        },
+        {
+          "t": 3774,
+          "text": "Backprop through tanh: 1 − tanh².",
+          "anchor": "fig2",
+          "action": [
+            "#gnr-run"
+          ]
+        },
+        {
+          "t": 3882,
+          "text": "The + nodes distribute 0.5.",
+          "anchor": "fig2"
+        },
+        {
+          "t": 3990,
+          "text": "The × nodes: x2.grad = w2.data * x2w2.grad.",
+          "anchor": "fig2"
+        },
+        {
+          "t": 4027,
+          "text": "w2.grad is 0 because x₂ is 0.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 4098,
+          "text": "w1.grad = 1, x1.grad = −1.5.",
+          "anchor": "fig2"
+        }
+      ],
+      "chapter": [
+        3172,
+        "manual backpropagation example #2: a neuron"
+      ]
+    },
+    {
+      "id": "s-ops",
+      "title": "A _backward for every operation",
+      "pictures": [
+        {
+          "id": "op-lab",
+          "proves": "Pick an operation and set the numbers."
+        }
+      ],
+      "moments": [
+        {
+          "t": 4142,
+          "text": "\"Put an end to this suffering\": automate the backward pass."
+        },
+        {
+          "t": 4212,
+          "text": "Leaves: an empty _backward.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 4247,
+          "text": "_backward for +.",
+          "action": [
+            "#op-seg [data-op=\"add\"]",
+            "#op-run"
+          ]
+        },
+        {
+          "t": 4318,
+          "text": "_backward for ×.",
+          "action": [
+            "#op-seg [data-op=\"mul\"]",
+            "#op-run"
+          ]
+        },
+        {
+          "t": 4355,
+          "text": "_backward for tanh.",
+          "action": [
+            "#op-seg [data-op=\"tanh\"]",
+            "#op-run"
+          ]
+        },
+        {
+          "t": 4462,
+          "text": "o.grad must start at 1.0.",
+          "anchor": "means:6"
+        },
+        {
+          "t": 4497,
+          "text": "The funny bug: storing vs calling the function.",
+          "anchor": "means:7"
+        },
+        {
+          "t": 4605,
+          "text": "Calling _backward node by node gives the same numbers."
+        }
+      ],
+      "chapter": [
+        4142,
+        "implementing the backward function for each operation"
+      ]
+    },
+    {
+      "id": "s-topo",
+      "title": "The right order: topological sort",
+      "pictures": [
+        {
+          "id": "g-topo",
+          "proves": "Phase 1 runs build_topo(o): a node is added to topo only after all of its children are in."
+        }
+      ],
+      "moments": [
+        {
+          "t": 4652,
+          "text": "Everything after a node must be done before its backward."
+        },
+        {
+          "t": 4687,
+          "text": "Topological sort of a DAG on Wikipedia.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 4722,
+          "text": "The build_topo code.",
+          "action": [
+            "demo:ensurePlaying(#tp-play)"
+          ]
+        },
+        {
+          "t": 4793,
+          "text": "The list ends with o = 0.707."
+        },
+        {
+          "t": 4828,
+          "text": "Call _backward on reversed(topo)."
+        },
+        {
+          "t": 4863,
+          "text": "Hide it inside backward().",
+          "anchor": "means:5"
+        },
+        {
+          "t": 4934,
+          "text": "o.backward(): backprop for one neuron.",
+          "anchor": "means:5"
+        }
+      ],
+      "chapter": [
+        4652,
+        "the backward function for a whole expression graph"
+      ]
+    },
+    {
+      "id": "s-bug",
+      "title": "The bug when a value is used twice",
+      "pictures": [
+        {
+          "id": "bug-lab",
+          "proves": "Karpathy's second example (1:24:14): a = −2, b = 3, d = a·b, e = a + b, f = d·e."
+        }
+      ],
+      "moments": [
+        {
+          "t": 4948,
+          "text": "b = a + a gives a.grad = 1. Wrong."
+        },
+        {
+          "t": 5018,
+          "text": "Why: self and other are the same object.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 5054,
+          "text": "A bigger example with d, e, f.",
+          "action": [
+            "#bug-seg [data-m=\"set\"]",
+            "#bug-run"
+          ]
+        },
+        {
+          "t": 5125,
+          "text": "The fix: accumulate with +=.",
+          "action": [
+            "#bug-seg [data-m=\"add\"]",
+            "#bug-run"
+          ]
+        },
+        {
+          "t": 5161,
+          "text": "Now the gradients are correct."
+        }
+      ],
+      "chapter": [
+        4948,
+        "fixing a backprop bug when one node is used multiple times"
+      ]
+    },
+    {
+      "id": "s-tanh",
+      "title": "Building tanh from smaller pieces",
+      "pictures": [
+        {
+          "id": "th-lab",
+          "proves": "Both versions are computed live by a small JavaScript copy of micrograd."
+        },
+        {
+          "id": "rm-next",
+          "proves": "a * 2 works because a.__mul__(2) wraps the 2 in a Value."
+        }
+      ],
+      "moments": [
+        {
+          "t": 5225,
+          "text": "tanh built from exp."
+        },
+        {
+          "t": 5295,
+          "text": "a + 1 fails; wrap plain numbers in Value.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 5366,
+          "text": "2 * a and __rmul__.",
+          "anchor": "fig2",
+          "action": [
+            "#rm-reset",
+            "#rm-next",
+            "#rm-next",
+            "#rm-next",
+            "#rm-next"
+          ]
+        },
+        {
+          "t": 5437,
+          "text": "exp and its backward.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 5508,
+          "text": "Division as a * b**-1.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 5649,
+          "text": "The power rule: n·xn−1.",
+          "anchor": "words"
+        },
+        {
+          "t": 5756,
+          "text": "Subtraction as a + (-b).",
+          "anchor": "means:5"
+        },
+        {
+          "t": 5820,
+          "text": "The long graph gives the same forward pass…",
+          "action": [
+            "#th-seg [data-m=\"many\"]"
+          ]
+        },
+        {
+          "t": 5890,
+          "text": "…and the same gradients."
+        },
+        {
+          "t": 5926,
+          "text": "The level of your operations is up to you.",
+          "anchor": "why"
+        }
+      ],
+      "chapter": [
+        5225,
+        "breaking up a tanh, exercising with more operations"
+      ]
+    },
+    {
+      "id": "s-torch",
+      "title": "The same neuron in PyTorch",
+      "pictures": [
+        {
+          "id": "tensor3d",
+          "proves": "Each cube is one scalar, one micrograd Value."
+        }
+      ],
+      "moments": [
+        {
+          "t": 5971,
+          "text": "The neuron rewritten in PyTorch."
+        },
+        {
+          "t": 6042,
+          "text": "Tensors: a 2×3 example and its shape.",
+          "action": [
+            "demo:tensor(2,3,1)"
+          ]
+        },
+        {
+          "t": 6077,
+          "text": ".double() for float64.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 6113,
+          "text": "requires_grad = True.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 6148,
+          "text": ".item() pulls out the number.",
+          "anchor": "#s-torch .tablewrap"
+        },
+        {
+          "t": 6171,
+          "text": "PyTorch agrees: 0.707, then 0.5, 0, −1.5, 1.",
+          "anchor": "means:3"
+        }
+      ],
+      "chapter": [
+        5971,
+        "doing the same thing in PyTorch"
+      ]
+    },
+    {
+      "id": "s-mlp",
+      "title": "Neuron, Layer, MLP",
+      "pictures": [
+        {
+          "id": "mlp3d",
+          "proves": "Every sphere is a neuron and every rod is a weight: green positive, red negative, thicker means bigger."
+        }
+      ],
+      "moments": [
+        {
+          "t": 6235,
+          "text": "Toward a neural net library."
+        },
+        {
+          "t": 6271,
+          "text": "class Neuron: random weights and bias.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 6341,
+          "text": "__call__.",
+          "anchor": "py"
+        },
+        {
+          "t": 6376,
+          "text": "zip pairs weights with inputs.",
+          "anchor": "py"
+        },
+        {
+          "t": 6447,
+          "text": "sum(..., self.b).",
+          "anchor": "py"
+        },
+        {
+          "t": 6482,
+          "text": "class Layer.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 6553,
+          "text": "class MLP: 3 inputs, two layers of 4, one output.",
+          "action": [
+            "#ml-fwd"
+          ]
+        },
+        {
+          "t": 6623,
+          "text": "Return a single value when there's one output.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 6658,
+          "text": "draw_dot of the whole MLP."
+        }
+      ],
+      "chapter": [
+        6235,
+        "building a neural net library (MLP) in micrograd"
+      ]
+    },
+    {
+      "id": "s-loss",
+      "title": "A tiny dataset and the loss",
+      "pictures": [
+        {
+          "id": "ls-svg",
+          "proves": "Dashed lines are the targets ys = [1.0, -1.0, -1.0, 1.0]."
+        }
+      ],
+      "moments": [
+        {
+          "t": 6664,
+          "text": "Four examples and their targets."
+        },
+        {
+          "t": 6699,
+          "text": "What the untrained net predicts.",
+          "action": [
+            "#ls-his"
+          ]
+        },
+        {
+          "t": 6735,
+          "text": "The loss: one number for \"how well\"."
+        },
+        {
+          "t": 6770,
+          "text": "Mean squared error, written with zip.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 6840,
+          "text": "Squaring discards the sign.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 6875,
+          "text": "Loss ≈ 7."
+        },
+        {
+          "t": 6910,
+          "text": "loss.backward(): \"something magical happened\".",
+          "anchor": "means:5"
+        },
+        {
+          "t": 6945,
+          "text": "One weight's gradient is negative: increasing it lowers the loss.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 6980,
+          "text": "The massive graph: four forward passes plus the loss.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 7050,
+          "text": "Gradients on the data aren't useful.",
+          "anchor": "means:6"
+        }
+      ],
+      "chapter": [
+        6664,
+        "creating a tiny dataset, writing the loss function"
+      ]
+    },
+    {
+      "id": "s-params",
+      "title": "Collecting the parameters",
+      "pictures": [
+        {
+          "id": "pc-in",
+          "proves": "Each neuron owns one weight per input plus one bias."
+        }
+      ],
+      "moments": [
+        {
+          "t": 7076,
+          "text": "Gather every parameter in one list."
+        },
+        {
+          "t": 7111,
+          "text": "parameters() on Neuron, like PyTorch's.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 7147,
+          "text": "Layer's version with extend.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 7182,
+          "text": "As a nested list comprehension.",
+          "anchor": "py"
+        },
+        {
+          "t": 7256,
+          "text": "41 parameters."
+        }
+      ],
+      "chapter": [
+        7076,
+        "collecting all of the parameters of the neural net"
+      ]
+    },
+    {
+      "id": "s-train",
+      "title": "Training: gradient descent for real",
+      "pictures": [
+        {
+          "id": "tr-strip",
+          "proves": "The 3D network is the one being trained: watch the rods change colour and thickness as the weights move."
+        }
+      ],
+      "moments": [
+        {
+          "t": 7272,
+          "text": "Change every parameter a little using its gradient."
+        },
+        {
+          "t": 7307,
+          "text": "The update loop over n.parameters().",
+          "anchor": "means:1"
+        },
+        {
+          "t": 7343,
+          "text": "Step size 0.01 × grad.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 7378,
+          "text": "The missing minus sign.",
+          "anchor": "means:1"
+        },
+        {
+          "t": 7448,
+          "text": "0.854 → 0.857: the right direction.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 7484,
+          "text": "Loss 4.84 → 4.36."
+        },
+        {
+          "t": 7520,
+          "text": "Iterate: forward, backward, update."
+        },
+        {
+          "t": 7590,
+          "text": "Too big a step can overshoot.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 7731,
+          "text": "A real training loop.",
+          "action": [
+            "demo:ensurePlaying(#tr-play)"
+          ]
+        },
+        {
+          "t": 7838,
+          "text": "The bug: forgot to zero_grad.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 7910,
+          "text": "The fix: reset every p.grad to 0.",
+          "anchor": "means:6"
+        },
+        {
+          "t": 7981,
+          "text": "Why the buggy version still \"worked\".",
+          "anchor": "why"
+        }
+      ],
+      "chapter": [
+        7272,
+        "gradient descent: training the network"
+      ]
+    },
+    {
+      "id": "s-summary",
+      "title": "The whole thing in one breath, and what's next",
+      "pictures": [
+        {
+          "id": "sc-svg",
+          "proves": "Each step to the right is a thousand times more parameters."
+        }
+      ],
+      "moments": [
+        {
+          "t": 8043,
+          "text": "Summary: what neural nets are."
+        },
+        {
+          "t": 8113,
+          "text": "Billions, almost trillions, of parameters."
+        },
+        {
+          "t": 8148,
+          "text": "GPT: predict the next word.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 8184,
+          "text": "Cross-entropy loss, fancier updates, same principles.",
+          "anchor": "means:2"
+        },
+        {
+          "t": 8206,
+          "text": "Walkthrough of micrograd on GitHub.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 8241,
+          "text": "ReLU instead of tanh.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 8311,
+          "text": "The test against PyTorch.",
+          "anchor": "means:3"
+        },
+        {
+          "t": 8346,
+          "text": "The demo notebook: batches.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 8416,
+          "text": "Learning rate decay.",
+          "anchor": "means:4"
+        },
+        {
+          "t": 8470,
+          "text": "Hunting for tanh's backward inside PyTorch.",
+          "anchor": "means:5"
+        },
+        {
+          "t": 8575,
+          "text": "Found it: grad × (1 − b²).",
+          "anchor": "means:5"
+        },
+        {
+          "t": 8610,
+          "text": "Registering your own function in PyTorch.",
+          "anchor": "means:5"
+        }
+      ],
+      "chapters": [
+        [
+          8043,
+          "summary, how to go towards modern neural nets"
+        ],
+        [
+          8206,
+          "walkthrough of the full code of micrograd"
+        ],
+        [
+          8470,
+          "real stuff: PyTorch's backward pass for tanh"
+        ],
+        [
+          8679,
+          "conclusion"
+        ],
+        [
+          8720,
+          "outtakes"
+        ]
+      ]
+    }
+  ],
+  "intro": {
+    "land": [
+      "#land-run"
+    ],
+    "g3-over": [
+      "#ov-fwd",
+      "demo:wait(4200)",
+      "#ov-bwd"
+    ],
+    "dv-main": [
+      "#dv-sweep"
+    ],
+    "gears": [
+      "demo:ensurePlaying(#gr-play)"
+    ],
+    "g3-step": [
+      "#stp-up"
+    ],
+    "g-nr": [
+      "#gnr-run"
+    ],
+    "g-topo": [
+      "demo:ensurePlaying(#tp-play)"
+    ],
+    "mlp3d": [
+      "#ml-fwd"
+    ],
+    "tr3d": [
+      "demo:ensurePlaying(#tr-play)"
+    ]
+  }
+}

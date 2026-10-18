@@ -46,6 +46,16 @@ test("demo steps call DEMO hooks with parsed arguments", async () => {
   assert.deepEqual(calls, [["tensor", 2, 3, 1], ["ensurePlaying", "#gr-play"], ["tensor", 1, 1, 1]]);
 });
 
+test("drive waits for a step that returns a promise", async () => {
+  const { DEMO, drive } = await import("../lib/js/core.js");
+  const order = [];
+  DEMO.slow = () => new Promise(r => setTimeout(() => { order.push("slow done"); r(); }, 60));
+  DEMO.after = () => order.push("after");
+  await drive(["demo:slow()", "demo:after()"], 0);
+  assert.deepEqual(order, ["slow done", "after"]);
+  assert.equal(typeof DEMO.wait, "function");
+});
+
 test("ytUrl builds a timed link from the refs map", () => {
   assert.equal(ytUrl({ k: "abc" }, "k", 25), "https://www.youtube.com/watch?v=abc&t=25s");
   assert.equal(ytUrl({ k: "abc" }, "k"), "https://www.youtube.com/watch?v=abc");

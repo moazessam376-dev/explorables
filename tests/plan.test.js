@@ -60,6 +60,16 @@ test("text sources skip time checks and allow page landmarks", () => {
   assert.deepEqual(validatePlan(p), []);
 });
 
+test("a section can span several lecture chapters", () => {
+  const p = good();
+  p.sections[1].chapter = undefined;
+  p.sections[1].chapters = [[0, "intro"], [25, "overview"]];
+  assert.deepEqual(validatePlan(p), []);
+  assert.deepEqual(pageConfig(p).chapters, [[0, "intro", "s-a"], [25, "overview", "s-a"], [120, "part b", "s-b"]]);
+  p.sections[1].chapters = [[999, "too late"]];
+  assert.ok(validatePlan(p).some(m => m.includes("s-a")));
+});
+
 test("pageConfig builds sorted chapters and explicit anchors only", () => {
   const p = good(); p.sections.reverse();
   const c = pageConfig(p);
