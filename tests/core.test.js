@@ -34,6 +34,18 @@ test("rng is deterministic per seed", () => {
   assert.ok(xs.every(v => v >= 0 && v < 1));
 });
 
+test("demo steps call DEMO hooks with parsed arguments", async () => {
+  const { DEMO, demoStep, drive } = await import("../lib/js/core.js");
+  const calls = [];
+  DEMO.tensor = (...a) => calls.push(["tensor", ...a]);
+  DEMO.ensurePlaying = sel => calls.push(["ensurePlaying", sel]);
+  assert.equal(demoStep("#a-button"), null);
+  demoStep("demo:tensor(2, 3, 1)")();
+  demoStep("demo:ensurePlaying(#gr-play)")();
+  await drive(["demo:tensor(1,1,1)"], 0);
+  assert.deepEqual(calls, [["tensor", 2, 3, 1], ["ensurePlaying", "#gr-play"], ["tensor", 1, 1, 1]]);
+});
+
 test("ytUrl builds a timed link from the refs map", () => {
   assert.equal(ytUrl({ k: "abc" }, "k", 25), "https://www.youtube.com/watch?v=abc&t=25s");
   assert.equal(ytUrl({ k: "abc" }, "k"), "https://www.youtube.com/watch?v=abc");

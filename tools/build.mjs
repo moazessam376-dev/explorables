@@ -18,8 +18,9 @@ export const LIB_ORDER = ["core", "three-stage", "graph2d", "links", "skin", "fo
 export const readText = p => readFileSync(p, "utf8").replace(/^﻿/, "");
 // lib files are ES modules for testing; on the page they share one script scope
 export const stripModules = js => js
+  .replace(/^\s*import\s[\s\S]*?from\s*["'][^"']+["'];?[ \t]*$/gm, "")   // imports, single- or multi-line
+  .replace(/^\s*import\s*["'][^"']+["'];?[ \t]*$/gm, "")                  // bare side-effect imports
   .split(/\r?\n/)
-  .filter(line => !/^\s*import\s[^;]*;?\s*$/.test(line))
   .map(line => line.replace(/^export (default )?(?=(async )?function|const|let|var|class)/, ""))
   .join("\n");
 const fill = (tpl, vars) => tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? "");
