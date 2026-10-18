@@ -34,3 +34,30 @@ test("the now line only changes when the moment changes (screen readers)",
       assert.ok(changes <= 1, `#fl-now changed ${changes} times in 1.5 s`);
     } finally { await b.close(); }
   });
+
+test("auto-complete marks the last section done when the lecture ends",
+  { skip: !findBrowser() && "no Chrome or Edge on this machine", timeout: 60000 }, async () => {
+    const dir = join(root, "tests/.out/fb-end");
+    rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
+    cpSync(join(root, "tests/fixtures/mini-page"), dir, { recursive: true });
+    assert.equal(spawnSync(process.execPath, [join(root, "tools/build.mjs"), "page", dir]).status, 0);
+    const b = await launch(findBrowser());
+    const ev = async expr => (await b.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true })).result.value;
+    try {
+      await b.send("Page.enable"); await b.send("Runtime.enable");
+      await b.send("Page.navigate", { url: pathToFileURL(join(dir, ".preview.html")).href });
+      const done = await ev(`(async () => {
+        const $ = s => document.querySelector(s);
+        const until = async ok => { for (let i = 0; i < 100 && !ok(); i++) await new Promise(r => setTimeout(r, 100)); };
+        await until(() => document.readyState === "complete" && $("#fl-now").textContent);
+        const box = $("#fl-autodone"); box.checked = true; box.dispatchEvent(new Event("change"));
+        $("#pr-skip").click();
+        await until(() => $("#fl-play").textContent.includes("Pause"));
+        $("#fl-clock").click(); $("#fl-input").value = "4:59"; $("#fl-form").requestSubmit();
+        await until(() => !$("#fl-play").textContent.includes("Pause"));
+        await new Promise(r => setTimeout(r, 200));
+        return $("#s-b").classList.contains("is-done");
+      })()`);
+      assert.equal(done, true);
+    } finally { await b.close(); }
+  });

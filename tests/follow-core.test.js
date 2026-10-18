@@ -110,3 +110,10 @@ test("coming back after being away triggers a catch-up", () => {
   assert.equal(needsCatchUp({ gapMs: 2000, hiddenMs: 0 }), true);
   assert.equal(needsCatchUp({ gapMs: 16, hiddenMs: 30 * 60 * 1000 }), true);
 });
+
+test("autoCompleteDue completes the last section when the clock passes the end", () => {
+  const ch = [[0, "", "a"], [100, "", "b"]];
+  assert.deepEqual(autoCompleteDue(ch, 290, 300, 300), ["b"]);
+  assert.deepEqual(autoCompleteDue(ch, 150, 299, 300), []);
+  assert.deepEqual(autoCompleteDue(ch, 50, 300, 300), ["a", "b"]);
+});
