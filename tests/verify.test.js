@@ -65,7 +65,14 @@ test("a section in the plan but not in the page is reported", () => {
   assert.match(r.stdout, /s-ghost/);
 });
 
-test("the fixture passes in a real browser", { skip: !findBrowser() && "no Chrome or Edge on this machine" }, () => {
+test("a browser that fails to start fails the run", () => {
+  const dir = freshCopy("v-badbrowser");
+  const r = verify(dir, { CHROME_PATH: process.execPath });   // node is not a browser
+  assert.match(r.stdout, /browser: could not run/);
+  assert.notEqual(r.status, 0, r.stdout);
+});
+
+test("the fixture passes in a real browser",{ skip: !findBrowser() && "no Chrome or Edge on this machine" }, () => {
   const dir = freshCopy("v-browser");
   const r = verify(dir);
   assert.equal(r.status, 0, r.stdout + r.stderr);

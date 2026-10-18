@@ -55,9 +55,9 @@ ${rows}
   </ol>
 </main>
 <script>
-(() => { const sel = document.getElementById("skin"), k = ${JSON.stringify(c.id + ":skin")};
+(() => { const sel = document.getElementById("skin"), k = ${JSON.stringify("explorables:" + c.id + ":skin")};
   const apply = v => v === "auto" ? document.documentElement.removeAttribute("data-skin") : document.documentElement.setAttribute("data-skin", v);
-  let v = "auto"; try { v = localStorage.getItem(k) || "auto"; } catch (e) { /* storage off */ }
+  let v = ${JSON.stringify(c.theme || "auto")}; try { v = localStorage.getItem(k) || v; } catch (e) { /* storage off */ }
   sel.value = v; apply(v);
   sel.addEventListener("change", () => { apply(sel.value); try { localStorage.setItem(k, sel.value); } catch (e) { /* storage off */ } });
 })();

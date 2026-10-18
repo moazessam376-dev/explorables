@@ -36,9 +36,15 @@ test("every localStorage access sits inside a try block", () => {
   }
 });
 
+test("the theme comes from PAGE and is shared across a course", () => {
+  const s = src("skin");
+  assert.match(s, /PAGE\.theme/);
+  assert.match(s, /explorables:\$\{PAGE\.course\}:skin/);
+});
+
 test("follow uses the tested decision functions", () => {
   const s = src("follow");
-  for (const fn of ["makeEngagement", "scrollDecision", "actionDue", "scrollBehavior", "needsCatchUp", "parseAnchor"]) {
+  for (const fn of ["makeEngagement", "scrollDecision", "actionDue", "scrollBehavior", "needsCatchUp", "parseAnchor", "sectionStartTime"]) {
     assert.match(s, new RegExp(fn + "\\("), `follow.js should call ${fn}`);
   }
   assert.match(src("progress"), /autoCompleteDue\(/);

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   parseAnchor, idxAt, chapterAt, makeEngagement, scrollDecision, actionDue, autoCompleteDue,
-  scrollBehavior, needsCatchUp, LEAD, BUSY, READ_MAX, ACTION_WINDOW
+  scrollBehavior, needsCatchUp, sectionStartTime, LEAD, BUSY, READ_MAX, ACTION_WINDOW
 } from "../lib/js/follow-core.js";
 
 test("constants match the reference page", () => {
@@ -90,6 +90,13 @@ test("autoCompleteDue lists sections whose end the clock just passed", () => {
   assert.deepEqual(autoCompleteDue(ch, 110, 120), []);
   assert.deepEqual(autoCompleteDue(ch, 50, 250), ["a", "b"]);
   assert.deepEqual(autoCompleteDue(ch, 250, 50), []);
+});
+
+test("a section starts at its first moment, else its chapter, else 0", () => {
+  const ch = [[0, "intro", "s-a"], [60, "mid", "s-mid"], [120, "b", "s-b"]];
+  assert.equal(sectionStartTime("s-a", 10, ch), 10);
+  assert.equal(sectionStartTime("s-mid", null, ch), 60);
+  assert.equal(sectionStartTime("s-pre", null, ch), 0);
 });
 
 test("long trips jump, short ones glide", () => {

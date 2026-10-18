@@ -46,6 +46,13 @@ test("an unknown status is an error", () => {
   assert.throws(() => renderCourseHome(c));
 });
 
+test("the course home shares the course's saved theme with its pages", () => {
+  const c = course(); c.theme = "chalk";
+  const html = renderCourseHome(c);
+  assert.match(html, /"explorables:zero-to-hero:skin"/);
+  assert.match(html, /"chalk"/);
+});
+
 test("the home page has a title, the theme picker and no follow bar", () => {
   const html = renderCourseHome(course());
   assert.ok(html.startsWith("<title>Neural Networks: Zero to Hero</title>"));

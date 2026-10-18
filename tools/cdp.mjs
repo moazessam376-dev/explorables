@@ -49,21 +49,37 @@ export async function launch(path, { width = 1280, height = 860 } = {}) {
   const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: "PUT" })).json();
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("could not connect to the browser")); });
-  let id = 0;
+  let id = 0, closed = false;
   const waiting = new Map(), listeners = new Map();
+  // if the browser goes away, every pending call fails instead of waiting forever
+  const shutDown = why => {
+    if (closed) return;
+    closed = true;
+    for (const { rej, timer } of waiting.values()) { clearTimeout(timer); rej(new Error(`browser closed (${why})`)); }
+    waiting.clear();
+  };
+  ws.onclose = () => shutDown("connection closed");
+  proc.on("exit", code => shutDown(`exit ${code}`));
   ws.onmessage = ev => {
     const msg = JSON.parse(ev.data);
     if (msg.id && waiting.has(msg.id)) {
-      const { res, rej } = waiting.get(msg.id); waiting.delete(msg.id);
+      const { res, rej, timer } = waiting.get(msg.id); waiting.delete(msg.id); clearTimeout(timer);
       msg.error ? rej(new Error(msg.error.message)) : res(msg.result);
     } else if (msg.method) (listeners.get(msg.method) || []).forEach(fn => fn(msg.params));
   };
   return {
-    send(method, params = {}) {
-      return new Promise((res, rej) => { const i = ++id; waiting.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params })); });
+    send(method, params = {}, timeoutMs = 30000) {
+      if (closed) return Promise.reject(new Error("browser closed"));
+      return new Promise((res, rej) => {
+        const i = ++id;
+        const timer = setTimeout(() => { waiting.delete(i); rej(new Error(`${method} timed out after ${timeoutMs / 1000} s`)); }, timeoutMs);
+        waiting.set(i, { res, rej, timer });
+        ws.send(JSON.stringify({ id: i, method, params }));
+      });
     },
     on(method, fn) { if (!listeners.has(method)) listeners.set(method, []); listeners.get(method).push(fn); },
     async close() {
+      shutDown("closed by caller");
       try { ws.close(); } catch (e) { /* already closed */ }
       proc.kill();
       await new Promise(r => setTimeout(r, 300));

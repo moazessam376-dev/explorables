@@ -20,6 +20,7 @@ they finished (or wants to check whether they understood):
 {
   "id": "zero-to-hero",
   "title": "Neural Networks: Zero to Hero",
+  "theme": "chalk",
   "source": { "provider": "youtube", "playlist": "PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" },
   "parts": [
     { "id": "01-micrograd", "title": "micrograd", "status": "done", "page": "01-micrograd/index.html",

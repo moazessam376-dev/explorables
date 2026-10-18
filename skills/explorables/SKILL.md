@@ -36,9 +36,14 @@ learner posted in one short line per step.
    → `references/plan-format.md`
 5. **Build.** Write `src/body.html` station by station from `ROOT/templates/station.html`, and the
    pictures in `src/js/`, reusing the library. → `references/anatomy.md`, `references/pictures.md`
-6. **Verify.** Run `node ROOT/tools/verify.mjs <dir> --screens <dir>/.screens` until it prints
-   `static: ok` and `browser: ok`. Look at one screenshot per theme. Check every item in
+6. **Verify.** Run `node ROOT/tools/verify.mjs <dir> --screens <dir>/.screens` until it exits 0
+   with `static: ok` and `browser: ok`. Look at one screenshot per theme. Check every item in
    `references/pitfalls.md` that applies.
+   - `browser: skipped` means there's no Chrome or Edge (or Node is older than 22). The static
+     checks still count. Open `<dir>/.preview.html` yourself, click through the pictures, and tell
+     the learner the page wasn't checked in a browser.
+   - `browser: could not run` means a browser exists but failed, and the run fails. Fix it
+     (check `CHROME_PATH`, check you're online for three.js) rather than skipping it.
 7. **Review once.** Dispatch one fresh reviewer subagent with the prompt in `references/review.md`.
    It checks the facts and timestamps against the source, and that the page works. Fix what it
    finds, then verify again. No second review.

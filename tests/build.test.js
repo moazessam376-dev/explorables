@@ -34,6 +34,15 @@ test("renamed imports are refused, because the page shares one scope", async () 
   const { stripModules } = await import("../tools/build.mjs");
   assert.throws(() => stripModules('import { idxAt as idxIn } from "./follow-core.js";\nidxIn([], 1);'), /renamed import/);
   assert.doesNotThrow(() => stripModules('import { idxAt,\n  chapterAt } from "./follow-core.js";'));
+  assert.throws(() => stripModules('import * as core from "./core.js";'), /renamed import/);
+});
+
+test("stripping an import never swallows the code after it", async () => {
+  const { stripModules } = await import("../tools/build.mjs");
+  const out = stripModules('import { a } from "./a.js"; // helper\nconst x = 1;\nimport { b,\n  c } from "./b.js";\nconst y = 2;');
+  assert.match(out, /const x = 1;/);
+  assert.match(out, /const y = 2;/);
+  assert.doesNotMatch(out, /import/);
 });
 
 test("the build is deterministic", () => {

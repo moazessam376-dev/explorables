@@ -9,6 +9,8 @@ reference plan is `ROOT/examples/micrograd/plan.json`.
   "id": "makemore-bigram",                      // storage key prefix: unique per page
   "title": "Makemore Companion",
   "subtitle": "Karpathy · Lecture 2",
+  "course": "zero-to-hero",                       // pages of one course share the learner's theme pick
+  "theme": "chalk",                               // from the profile; "auto" if they didn't choose
   "source": { "kind": "video", "provider": "youtube", "id": "PaCmpygFfXo", "duration": 6971, "title": "..." },
   "refs": { "k": "PaCmpygFfXo", "c2": "IHZwWFHWa-w" },   // keys used by <a data-v="k" data-t="...">
   "mustRead": ["s-big"],                          // asked before following from the very start

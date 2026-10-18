@@ -1971,7 +1971,7 @@ section.st.is-done .st-head h2::after{content:" ✓";color:var(--ok)}
 <script>
 (() => {
 "use strict";
-const PAGE = {"id":"micrograd","title":"Micrograd Companion","subtitle":"Karpathy · Lecture 1","source":{"kind":"video","provider":"youtube","id":"VMj-3S1tku0","duration":8752,"title":"The spelled-out intro to neural networks and backpropagation: building micrograd"},"refs":{"k":"VMj-3S1tku0","c1":"aircAruvnKk","c2":"IHZwWFHWa-w","c3":"Ilg3gGewQ5U","c4":"tIeHLnjs5U8"},"chapters":[[0,"intro","s-overview"],[25,"micrograd overview","s-overview"],[488,"derivative of a simple function with one input","s-deriv"],[852,"derivative of a function with multiple inputs","s-multi"],[1149,"the core Value object and its visualization","s-value"],[1930,"manual backpropagation example #1: simple expression","s-backprop"],[3070,"preview of a single optimization step","s-step"],[3172,"manual backpropagation example #2: a neuron","s-neuron"],[4142,"implementing the backward function for each operation","s-ops"],[4652,"the backward function for a whole expression graph","s-topo"],[4948,"fixing a backprop bug when one node is used multiple times","s-bug"],[5225,"breaking up a tanh, exercising with more operations","s-tanh"],[5971,"doing the same thing in PyTorch","s-torch"],[6235,"building a neural net library (MLP) in micrograd","s-mlp"],[6664,"creating a tiny dataset, writing the loss function","s-loss"],[7076,"collecting all of the parameters of the neural net","s-params"],[7272,"gradient descent: training the network","s-train"],[8043,"summary, how to go towards modern neural nets","s-summary"],[8206,"walkthrough of the full code of micrograd","s-summary"],[8470,"real stuff: PyTorch's backward pass for tanh","s-summary"],[8679,"conclusion","s-summary"],[8720,"outtakes","s-summary"]],"anchors":{"237":"means:3","264":"means:4","334":"means:5","405":"why","594":"means","629":"words","759":"#dv-read","923":"#m-print","1029":"#m-print","1053":"means","1089":"means","1124":"means","1185":"#b-code","1221":"means:2","1292":"means:2","1468":"#g-build","1573":"means:4","1608":"#g-build","1681":"#g-build","1751":"#g-build","1786":"means:5","1821":"means:6","1857":"means:5","1965":"#bp-print","2094":"means:2","2272":"means:3","2377":"means:3","2484":"fig2","2591":"fig2","2732":"means:4","3015":"why","3141":"#stp-print","3208":"means:1","3419":"means:6","3490":"means:6","3668":"means:3","3774":"fig2","3882":"fig2","3990":"fig2","4027":"means:5","4098":"fig2","4212":"means:5","4462":"means:6","4497":"means:7","4687":"means:2","4863":"means:5","4934":"means:5","5018":"means:1","5295":"means:1","5366":"fig2","5437":"means:3","5508":"means:4","5649":"words","5756":"means:5","5926":"why","6077":"means:1","6113":"means:2","6148":"#s-torch .tablewrap","6171":"means:3","6271":"means:1","6341":"py","6376":"py","6447":"py","6482":"means:2","6623":"means:5","6770":"means:3","6840":"means:4","6910":"means:5","6945":"means:5","6980":"means:5","7050":"means:6","7111":"means:1","7147":"means:2","7182":"py","7307":"means:1","7343":"means:1","7378":"means:1","7448":"means:2","7590":"means:4","7838":"means:5","7910":"means:6","7981":"why","8148":"means:2","8184":"means:2","8206":"means:3","8241":"means:3","8311":"means:3","8346":"means:4","8416":"means:4","8470":"means:5","8575":"means:5","8610":"means:5"},"actions":{"166":["#ov-fwd"],"201":["#ov-bwd"],"699":["#s-deriv [data-x=\"3\"]"],"724":["#dv-shrink"],"759":["#dv-tiny"],"778":["demo:derivReset()"],"788":["#s-deriv [data-x=\"-3\"]"],"817":["#s-deriv [data-x=\"0.6666666666666666\"]"],"1029":["[data-nudge=\"a\"]"],"1089":["[data-nudge=\"b\"]"],"1124":["[data-nudge=\"c\"]"],"1327":["demo:builderTo(5)"],"1681":["demo:builderTo(7)"],"1751":["demo:builderTo(8)"],"2591":["demo:ensurePlaying(#gr-play)"],"3106":["#stp-up"],"3668":["#nr-karpathy"],"3774":["#gnr-run"],"4247":["#op-seg [data-op=\"add\"]","#op-run"],"4318":["#op-seg [data-op=\"mul\"]","#op-run"],"4355":["#op-seg [data-op=\"tanh\"]","#op-run"],"4722":["demo:ensurePlaying(#tp-play)"],"5054":["#bug-seg [data-m=\"set\"]","#bug-run"],"5125":["#bug-seg [data-m=\"add\"]","#bug-run"],"5366":["#rm-reset","#rm-next","#rm-next","#rm-next","#rm-next"],"5820":["#th-seg [data-m=\"many\"]"],"6042":["demo:tensor(2,3,1)"],"6553":["#ml-fwd"],"6699":["#ls-his"],"7731":["demo:ensurePlaying(#tr-play)"]},"intro":{"land":["#land-run"],"g3-over":["#ov-fwd","demo:wait(4200)","#ov-bwd"],"dv-main":["#dv-sweep"],"gears":["demo:ensurePlaying(#gr-play)"],"g3-step":["#stp-up"],"g-nr":["#gnr-run"],"g-topo":["demo:ensurePlaying(#tp-play)"],"mlp3d":["#ml-fwd"],"tr3d":["demo:ensurePlaying(#tr-play)"]},"mustRead":["s-big"]};
+const PAGE = {"id":"micrograd","title":"Micrograd Companion","subtitle":"Karpathy · Lecture 1","theme":"auto","course":"micrograd","source":{"kind":"video","provider":"youtube","id":"VMj-3S1tku0","duration":8752,"title":"The spelled-out intro to neural networks and backpropagation: building micrograd"},"refs":{"k":"VMj-3S1tku0","c1":"aircAruvnKk","c2":"IHZwWFHWa-w","c3":"Ilg3gGewQ5U","c4":"tIeHLnjs5U8"},"chapters":[[0,"intro","s-overview"],[25,"micrograd overview","s-overview"],[488,"derivative of a simple function with one input","s-deriv"],[852,"derivative of a function with multiple inputs","s-multi"],[1149,"the core Value object and its visualization","s-value"],[1930,"manual backpropagation example #1: simple expression","s-backprop"],[3070,"preview of a single optimization step","s-step"],[3172,"manual backpropagation example #2: a neuron","s-neuron"],[4142,"implementing the backward function for each operation","s-ops"],[4652,"the backward function for a whole expression graph","s-topo"],[4948,"fixing a backprop bug when one node is used multiple times","s-bug"],[5225,"breaking up a tanh, exercising with more operations","s-tanh"],[5971,"doing the same thing in PyTorch","s-torch"],[6235,"building a neural net library (MLP) in micrograd","s-mlp"],[6664,"creating a tiny dataset, writing the loss function","s-loss"],[7076,"collecting all of the parameters of the neural net","s-params"],[7272,"gradient descent: training the network","s-train"],[8043,"summary, how to go towards modern neural nets","s-summary"],[8206,"walkthrough of the full code of micrograd","s-summary"],[8470,"real stuff: PyTorch's backward pass for tanh","s-summary"],[8679,"conclusion","s-summary"],[8720,"outtakes","s-summary"]],"anchors":{"237":"means:3","264":"means:4","334":"means:5","405":"why","594":"means","629":"words","759":"#dv-read","923":"#m-print","1029":"#m-print","1053":"means","1089":"means","1124":"means","1185":"#b-code","1221":"means:2","1292":"means:2","1468":"#g-build","1573":"means:4","1608":"#g-build","1681":"#g-build","1751":"#g-build","1786":"means:5","1821":"means:6","1857":"means:5","1965":"#bp-print","2094":"means:2","2272":"means:3","2377":"means:3","2484":"fig2","2591":"fig2","2732":"means:4","3015":"why","3141":"#stp-print","3208":"means:1","3419":"means:6","3490":"means:6","3668":"means:3","3774":"fig2","3882":"fig2","3990":"fig2","4027":"means:5","4098":"fig2","4212":"means:5","4462":"means:6","4497":"means:7","4687":"means:2","4863":"means:5","4934":"means:5","5018":"means:1","5295":"means:1","5366":"fig2","5437":"means:3","5508":"means:4","5649":"words","5756":"means:5","5926":"why","6077":"means:1","6113":"means:2","6148":"#s-torch .tablewrap","6171":"means:3","6271":"means:1","6341":"py","6376":"py","6447":"py","6482":"means:2","6623":"means:5","6770":"means:3","6840":"means:4","6910":"means:5","6945":"means:5","6980":"means:5","7050":"means:6","7111":"means:1","7147":"means:2","7182":"py","7307":"means:1","7343":"means:1","7378":"means:1","7448":"means:2","7590":"means:4","7838":"means:5","7910":"means:6","7981":"why","8148":"means:2","8184":"means:2","8206":"means:3","8241":"means:3","8311":"means:3","8346":"means:4","8416":"means:4","8470":"means:5","8575":"means:5","8610":"means:5"},"actions":{"166":["#ov-fwd"],"201":["#ov-bwd"],"699":["#s-deriv [data-x=\"3\"]"],"724":["#dv-shrink"],"759":["#dv-tiny"],"778":["demo:derivReset()"],"788":["#s-deriv [data-x=\"-3\"]"],"817":["#s-deriv [data-x=\"0.6666666666666666\"]"],"1029":["[data-nudge=\"a\"]"],"1089":["[data-nudge=\"b\"]"],"1124":["[data-nudge=\"c\"]"],"1327":["demo:builderTo(5)"],"1681":["demo:builderTo(7)"],"1751":["demo:builderTo(8)"],"2591":["demo:ensurePlaying(#gr-play)"],"3106":["#stp-up"],"3668":["#nr-karpathy"],"3774":["#gnr-run"],"4247":["#op-seg [data-op=\"add\"]","#op-run"],"4318":["#op-seg [data-op=\"mul\"]","#op-run"],"4355":["#op-seg [data-op=\"tanh\"]","#op-run"],"4722":["demo:ensurePlaying(#tp-play)"],"5054":["#bug-seg [data-m=\"set\"]","#bug-run"],"5125":["#bug-seg [data-m=\"add\"]","#bug-run"],"5366":["#rm-reset","#rm-next","#rm-next","#rm-next","#rm-next"],"5820":["#th-seg [data-m=\"many\"]"],"6042":["demo:tensor(2,3,1)"],"6553":["#ml-fwd"],"6699":["#ls-his"],"7731":["demo:ensurePlaying(#tr-play)"]},"intro":{"land":["#land-run"],"g3-over":["#ov-fwd","demo:wait(4200)","#ov-bwd"],"dv-main":["#dv-sweep"],"gears":["demo:ensurePlaying(#gr-play)"],"g3-step":["#stp-up"],"g-nr":["#gnr-run"],"g-topo":["demo:ensurePlaying(#tp-play)"],"mlp3d":["#ml-fwd"],"tr3d":["demo:ensurePlaying(#tr-play)"]},"mustRead":["s-big"]};
 // ---- lib: core.js ----
 // Shared helpers for every Explorables page. Plain functions; the build strips `export`.
 // Shared helpers, YouTube links, the lecture timeline and the "I'm at" jump box.
@@ -2558,13 +2558,15 @@ safe("skin", () => {
     if (v === "auto") document.documentElement.removeAttribute("data-skin");
     else document.documentElement.setAttribute("data-skin", v);
   };
-  let saved = "auto";
-  try { saved = localStorage.getItem(`${PAGE.id}:skin`) || "auto"; } catch (e) { /* storage off */ }
+  // a pick made on any page of the course (or its home) wins; otherwise the learner's profile theme
+  const key = `explorables:${PAGE.course}:skin`;
+  let saved = PAGE.theme || "auto";
+  try { saved = localStorage.getItem(key) || saved; } catch (e) { /* storage off */ }
   if (![...sel.options].some(o => o.value === saved)) saved = "auto";
   sel.value = saved; apply(saved);
   sel.addEventListener("change", () => {
     apply(sel.value);
-    try { localStorage.setItem(`${PAGE.id}:skin`, sel.value); } catch (e) { /* storage off */ }
+    try { localStorage.setItem(key, sel.value); } catch (e) { /* storage off */ }
   });
 });
 
@@ -2663,6 +2665,13 @@ function autoCompleteDue(chapters, prevT, t) {
   return out;
 }
 
+// where "the part you're reading" starts: its first moment, else its chapter, else 0
+function sectionStartTime(sectionId, firstMomentT, chapters) {
+  if (firstMomentT != null) return firstMomentT;
+  const c = chapters.find(ch => ch[2] === sectionId);
+  return c ? c[0] : 0;
+}
+
 // long trips (more than two screens) jump instead of crawling
 function scrollBehavior({ distance, viewportH, reducedMotion }) {
   return reducedMotion || Math.abs(distance) > viewportH * 2 ? "auto" : "smooth";
@@ -2756,9 +2765,12 @@ safe("follow", () => {
   autoBox.checked = autoScroll; playBox.checked = AUTO.play;
   const save = () => { if (t > 0) savedT = t; store.set("t", Math.round(t)); store.set("speed", speed); };
   const sectionInView = () => { let cur = sections[0]; sections.forEach(s => { if (s.getBoundingClientRect().top < innerHeight * 0.4) cur = s; }); return cur; };
-  const sectionStart = sec => { const a = $(".moments a[data-t]", sec); return a ? +a.dataset.t : 0; };
+  const sectionStart = sec => { if (!sec) return 0; const a = $(".moments a[data-t]", sec); return sectionStartTime(sec.id, a ? +a.dataset.t : null, CH); };
   const tell = () => document.dispatchEvent(new CustomEvent("explorables:time", { detail: { t, prevT, playing } }));
 
+  // the now line is aria-live: write it only when the words change, or screen readers repeat it every frame
+  let nowHTML = "";
+  const setNow = html => { if (html !== nowHTML) { nowHTML = html; nowEl.innerHTML = html; } };
   function paint() {
     const shownT = playing || manual ? t : sectionStart(sectionInView());
     clockBtn.textContent = fmtTime(shownT);
@@ -2779,10 +2791,10 @@ safe("follow", () => {
           side.scrollTo({ top: side.scrollTop + d, behavior: RM ? "auto" : "smooth" });
         }
       }
-      nowEl.innerHTML = `<span class="t">${fmtTime(a.t)}</span>${a.text}`;
+      setNow(`<span class="t">${fmtTime(a.t)}</span>${a.text}`);
     } else {
-      nowEl.innerHTML = `Press <b>▶ Follow</b> when you press play on the video. It starts at <b>${fmtTime(shownT)}</b>, the part you're reading.` +
-        (savedT != null ? ` Or <b>▶ Resume</b> where you stopped, at <b>${fmtTime(savedT)}</b>.` : "");
+      setNow(`Press <b>▶ Follow</b> when you press play on the video. It starts at <b>${fmtTime(shownT)}</b>, the part you're reading.` +
+        (savedT != null ? ` Or <b>▶ Resume</b> where you stopped, at <b>${fmtTime(savedT)}</b>.` : ""));
     }
     const showLast = !playing && savedT != null && (!manual || Math.abs(t - savedT) > 5);
     lastBtn.hidden = !showLast;

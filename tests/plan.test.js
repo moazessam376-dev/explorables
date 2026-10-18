@@ -60,6 +60,19 @@ test("text sources skip time checks and allow page landmarks", () => {
   assert.deepEqual(validatePlan(p), []);
 });
 
+test("the learner's theme and the course id reach the page config", () => {
+  const p = good(); p.theme = "chalk"; p.course = "zero-to-hero";
+  assert.deepEqual(validatePlan(p), []);
+  const c = pageConfig(p);
+  assert.equal(c.theme, "chalk");
+  assert.equal(c.course, "zero-to-hero");
+  const d = pageConfig(good());
+  assert.equal(d.theme, "auto");
+  assert.equal(d.course, "mini");
+  p.theme = "neon";
+  assert.ok(validatePlan(p).some(m => m.includes("neon")));
+});
+
 test("a section can span several lecture chapters", () => {
   const p = good();
   p.sections[1].chapter = undefined;

@@ -19,14 +19,18 @@ export const readText = p => readFileSync(p, "utf8").replace(/^﻿/, "");
 // lib files are ES modules for testing; on the page they share one script scope
 export const stripModules = js => {
   // a renamed import (`a as b`) would leave `b` undefined once imports are stripped
-  for (const m of js.matchAll(/^\s*import\s*\{([^}]*)\}/gm)) {
+  for (const m of js.matchAll(/^[ \t]*import[ \t]*(\{[^}]*\}|\*[ \t]*as[ \t]+[\w$]+)/gm)) {
     if (/\bas\b/.test(m[1])) throw new Error(`renamed import not supported (the page shares one scope): ${m[0].replace(/\s+/g, " ")}`);
   }
   return stripImportsExports(js);
 };
+// each pattern ends at its own from-string (plus an optional ; and // comment), so it can
+// never run on into the code after it
+const TAIL = String.raw`[ \t]*from[ \t]*["'][^"'\n]+["'][ \t]*;?(?:[ \t]*\/\/[^\n]*)?$`;
 const stripImportsExports = js => js
-  .replace(/^\s*import\s[\s\S]*?from\s*["'][^"']+["'];?[ \t]*$/gm, "")   // imports, single- or multi-line
-  .replace(/^\s*import\s*["'][^"']+["'];?[ \t]*$/gm, "")                  // bare side-effect imports
+  .replace(new RegExp(String.raw`^[ \t]*import[ \t]*\{[^}]*\}` + TAIL, "gm"), "")        // import { a, b } (may span lines)
+  .replace(new RegExp(String.raw`^[ \t]*import[ \t]+[\w$]+` + TAIL, "gm"), "")            // import x from "..."
+  .replace(/^[ \t]*import[ \t]*["'][^"'\n]+["'][ \t]*;?(?:[ \t]*\/\/[^\n]*)?$/gm, "")    // import "..."
   .split(/\r?\n/)
   .map(line => line.replace(/^export (default )?(?=(async )?function|const|let|var|class)/, ""))
   .join("\n");

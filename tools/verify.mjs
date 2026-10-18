@@ -159,7 +159,9 @@ async function main(argv) {
       failed = failed || br.problems.length > 0;
     }
   } catch (e) {
-    console.log(`browser: could not run (${e.message})`);
+    // a browser that exists but fails is not a skip: nothing was checked in it
+    console.log(`browser: could not run (${e.message}); the page was not checked in a browser`);
+    failed = true;
   }
   process.exit(failed ? 1 : 0);
 }

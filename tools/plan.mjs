@@ -1,7 +1,8 @@
 // A page's plan.json: what the page covers, where each moment points, what pictures act out.
 // validatePlan lists problems (empty = valid); pageConfig turns it into the PAGE object pages read.
 
-export const ANCHOR_RE = /^(head|fig|fig2|why|words|py|means(:\d+)?|#.+)$/;
+export const THEMES = ["auto", "field-light", "field-dark", "chalk", "notebook-light", "notebook-dark", "manim"];
+export const ANCHOR_RE =/^(head|fig|fig2|why|words|py|means(:\d+)?|#.+)$/;
 
 export function validatePlan(plan) {
   const out = [];
@@ -33,6 +34,7 @@ export function validatePlan(plan) {
     for (const c of chaptersOf(s)) if (isVideo && !(c[0] >= 0 && c[0] <= plan.source.duration)) out.push(`chapter ${c[0]} of ${s.id} is outside the video`);
   }
   for (const id of plan.mustRead || []) if (!ids.has(id)) out.push(`mustRead ${id} is not a section`);
+  if (plan.theme != null && !THEMES.includes(plan.theme)) out.push(`theme "${plan.theme}" is not one of ${THEMES.join(", ")}`);
   return out;
 }
 
@@ -52,6 +54,8 @@ export function pageConfig(plan) {
   chapters.sort((a, b) => a[0] - b[0]);
   return {
     id: plan.id, title: plan.title, subtitle: plan.subtitle || "",
+    // the learner's theme (from their profile) and the course, which shares one saved theme pick
+    theme: plan.theme || "auto", course: plan.course || plan.id,
     source: plan.source, refs: plan.refs || {},
     chapters, anchors, actions,
     intro: plan.intro || {}, mustRead: plan.mustRead || []

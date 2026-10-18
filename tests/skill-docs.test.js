@@ -20,6 +20,12 @@ test("every reference SKILL.md mentions exists", () => {
   for (const r of new Set(refs)) assert.ok(existsSync(join(skill, "references", r)), `missing references/${r}`);
 });
 
+test("the verify step says what to do without a browser or when it fails", () => {
+  const s = read(join(skill, "SKILL.md"));
+  assert.match(s, /browser: skipped/);
+  assert.match(s, /browser: could not run/);
+});
+
 test("the pitfalls list covers every lesson so far", () => {
   const p = read(join(skill, "references/pitfalls.md"));
   for (const k of ["slider", "sticky", ".ghost", "PowerShell", "scroll", "[hidden]", "camera", "localStorage", "renamed import", "hidden tab"]) {

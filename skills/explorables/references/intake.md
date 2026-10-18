@@ -32,7 +32,8 @@ chapter, docs, or a bare topic. Read the profile. Then ask only what would chang
 
 ## The profile
 
-Write the answers to `~/.explorables/profile.md` and update it whenever something changes. Later
+Write the answers to `~/.explorables/profile.md` and update it whenever something changes. Copy
+the theme into every page's `plan.json` (`"theme"`) and into `course.json`, so new pages open in it. Later
 pages don't ask again; at most, "Anything changed since last time?"
 
 ```markdown
