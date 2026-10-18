@@ -19,6 +19,8 @@ import { findBrowser, launch } from "./cdp.mjs";
 const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 const SKINS = ["auto", "field-dark", "chalk", "notebook-light", "notebook-dark", "manim"];
 const read = p => readFileSync(p, "utf8").replace(/^﻿/, "");
+// ids go into a RegExp, so their special characters must be literal
+const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const simpleId = s => /^#[\w-]+$/.test(s);
 const steps = list => (list || []).filter(s => typeof s === "string" && !s.startsWith("demo:"));
 
@@ -43,7 +45,7 @@ export function staticChecks(pageDir) {
   // planned sections and moments exist
   const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   for (const s of plan.sections || []) {
-    const start = html.search(new RegExp(`<section[^>]*\\sid="${s.id}"`));
+    const start = html.search(new RegExp(`<section[^>]*\\sid="${reEsc(s.id)}"`));
     if (start < 0) { problems.push(`section ${s.id} is in the plan but not in the page`); continue; }
     const rest = html.slice(start + 8), end = rest.search(/<section[\s>]|<\/main>/);
     const body = end < 0 ? rest : rest.slice(0, end);

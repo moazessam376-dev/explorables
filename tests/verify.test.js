@@ -78,3 +78,13 @@ test("the fixture passes in a real browser",{ skip: !findBrowser() && "no Chrome
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /browser: ok/);
 });
+
+test("a section id with RegExp characters is found", () => {
+  const dir = freshCopy("v-regexid", p => { p.sections[2].id = "s-b+"; });
+  const body = join(dir, "src/body.html");
+  writeFileSync(body, readFileSync(body, "utf8").replace('id="s-b"', 'id="s-b+"'));
+  assert.equal(build(dir).status, 0);
+  const r = verify(dir, { EXPLORABLES_NO_BROWSER: "1" });
+  assert.match(r.stdout, /static: ok/);
+  assert.equal(r.status, 0, r.stdout);
+});
