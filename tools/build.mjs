@@ -17,7 +17,14 @@ export const LIB_ORDER = ["core", "three-stage", "graph2d", "links", "skin", "fo
 
 export const readText = p => readFileSync(p, "utf8").replace(/^﻿/, "");
 // lib files are ES modules for testing; on the page they share one script scope
-export const stripModules = js => js
+export const stripModules = js => {
+  // a renamed import (`a as b`) would leave `b` undefined once imports are stripped
+  for (const m of js.matchAll(/^\s*import\s*\{([^}]*)\}/gm)) {
+    if (/\bas\b/.test(m[1])) throw new Error(`renamed import not supported (the page shares one scope): ${m[0].replace(/\s+/g, " ")}`);
+  }
+  return stripImportsExports(js);
+};
+const stripImportsExports = js => js
   .replace(/^\s*import\s[\s\S]*?from\s*["'][^"']+["'];?[ \t]*$/gm, "")   // imports, single- or multi-line
   .replace(/^\s*import\s*["'][^"']+["'];?[ \t]*$/gm, "")                  // bare side-effect imports
   .split(/\r?\n/)

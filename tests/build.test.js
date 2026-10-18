@@ -30,6 +30,12 @@ test("builds the mini page into one self-contained file", () => {
   execFileSync(process.execPath, ["--check", tmp]);
 });
 
+test("renamed imports are refused, because the page shares one scope", async () => {
+  const { stripModules } = await import("../tools/build.mjs");
+  assert.throws(() => stripModules('import { idxAt as idxIn } from "./follow-core.js";\nidxIn([], 1);'), /renamed import/);
+  assert.doesNotThrow(() => stripModules('import { idxAt,\n  chapterAt } from "./follow-core.js";'));
+});
+
 test("the build is deterministic", () => {
   const a = join(out, "a.html"), b = join(out, "b.html");
   build("page", join(root, "tests/fixtures/mini-page"), "--out", a);

@@ -1,1 +1,1 @@
-{ "name": "explorables", "private": true, "type": "module", "scripts": { "test": "node --test" }, "engines": { "node": ">=20" } }
+{ "name": "explorables", "private": true, "type": "module", "scripts": { "test": "node --test" }, "engines": { "node": ">=22" } }
