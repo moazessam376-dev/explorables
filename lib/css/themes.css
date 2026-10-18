@@ -20,6 +20,12 @@
   --fig-label:block;
   --paper-img:linear-gradient(var(--gridline) 1px, transparent 1px), linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
   --paper-size:24px 24px;
+  --on-data:#FFFFFF;
+  --fill:50%; /* how far along a slider is; controls.js sets it on each slider */
+  /* slider look: a fader cap with a centre mark on a thin square rail */
+  --track-h:4px; --track-r:0; --track-bg:var(--rule);
+  --thumb-w:10px; --thumb-h:20px; --thumb-r:1px; --thumb-bw:2px; --thumb-glow:none;
+  --thumb-bg:linear-gradient(var(--data), var(--data)) center / 2px 8px no-repeat var(--panel);
 }
 /* Field Manual · dark, when the viewer's setting is dark and no theme was picked */
 @media (prefers-color-scheme: dark){
@@ -29,7 +35,7 @@
     --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
     --stage:#0C1C30; --gridline:#10233B;
     --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
-    --fig-bc:#3A5F88;
+    --fig-bc:#3A5F88; --on-data:#0A1626;
     color-scheme:dark;
   }
 }
@@ -40,7 +46,7 @@
   --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
   --stage:#0C1C30; --gridline:#10233B;
   --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
-  --fig-bc:#3A5F88;
+  --fig-bc:#3A5F88; --on-data:#0A1626;
   color-scheme:dark;
 }
 :root[data-skin="field-light"]{ color-scheme:light; }
@@ -63,6 +69,10 @@
   --fig-label:none;
   --paper-img:radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.05), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(255,255,255,.035), transparent 50%);
   --paper-size:auto;
+  --on-data:#1D2A24;
+  --track-h:3px; --track-r:2px; --track-bg:repeating-linear-gradient(90deg, var(--muted) 0 7px, transparent 7px 12px);
+  --thumb-w:16px; --thumb-h:16px; --thumb-r:48% 52% 44% 56% / 55% 45% 55% 45%; --thumb-bw:0; --thumb-glow:0 0 0 3px rgba(238,237,230,.14);
+  --thumb-bg:var(--ink);
   color-scheme:dark;
 }
 
@@ -77,6 +87,9 @@
   --h-case:none; --h-track:-.015em; --h-scale:1; --h-weight:700;
   --r:7px; --rf:12px; --line:solid; --fig-bw:1px; --fig-bc:var(--rule);
   --fig-label:none; --paper-img:none; --paper-size:auto;
+  --track-h:6px; --track-r:999px; --track-bg:var(--rule);
+  --thumb-w:18px; --thumb-h:18px; --thumb-r:50%; --thumb-bw:2px; --thumb-glow:0 1px 3px rgba(0,0,0,.28);
+  --thumb-bg:var(--panel);
 }
 :root[data-skin="notebook-light"]{
   --paper:#F3F5F9; --panel:#FFFFFF; --ink:#131B27; --muted:#556175; --rule:#D6DCE6; --wash:#E8EDF4;
@@ -84,6 +97,7 @@
   --data-soft:#E2EAFB; --grad-soft:#FBE8DB; --nudge-soft:#F7E0EF; --ok-soft:#DFF2E7; --neg-soft:#F9E1E5;
   --stage:#F7F9FC;
   --top-bg:#F3F5F9; --top-ink:#131B27; --top-muted:#556175; --top-rule:#D6DCE6; --top-tl:#E2EAFB; --top-field:#FFFFFF; --top-border:1px solid #D6DCE6;
+  --on-data:#FFFFFF;
   color-scheme:light;
 }
 :root[data-skin="notebook-dark"]{
@@ -92,6 +106,7 @@
   --data-soft:#1A2745; --grad-soft:#3B2517; --nudge-soft:#3A1A31; --ok-soft:#173225; --neg-soft:#3A1820;
   --stage:#111823;
   --top-bg:#0E131B; --top-ink:#E4E8EF; --top-muted:#9AA5B7; --top-rule:#29334A; --top-tl:#1A2745; --top-field:#151C27; --top-border:1px solid #29334A;
+  --on-data:#0E131B;
   color-scheme:dark;
 }
 
@@ -111,5 +126,9 @@
   --h-case:none; --h-track:-.01em; --h-scale:1.04; --h-weight:500;
   --r:4px; --rf:4px; --line:solid; --fig-bw:1px; --fig-bc:#1B1E27;
   --fig-label:none; --paper-img:none; --paper-size:auto;
+  --on-data:#0B0C10;
+  --track-h:2px; --track-r:1px; --track-bg:color-mix(in srgb, var(--muted) 45%, transparent);
+  --thumb-w:14px; --thumb-h:14px; --thumb-r:50%; --thumb-bw:0; --thumb-glow:0 0 0 4px var(--data-soft), 0 0 12px var(--data);
+  --thumb-bg:var(--data);
   color-scheme:dark;
 }

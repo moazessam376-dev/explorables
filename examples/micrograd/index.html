@@ -26,6 +26,12 @@
   --fig-label:block;
   --paper-img:linear-gradient(var(--gridline) 1px, transparent 1px), linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
   --paper-size:24px 24px;
+  --on-data:#FFFFFF;
+  --fill:50%; /* how far along a slider is; controls.js sets it on each slider */
+  /* slider look: a fader cap with a centre mark on a thin square rail */
+  --track-h:4px; --track-r:0; --track-bg:var(--rule);
+  --thumb-w:10px; --thumb-h:20px; --thumb-r:1px; --thumb-bw:2px; --thumb-glow:none;
+  --thumb-bg:linear-gradient(var(--data), var(--data)) center / 2px 8px no-repeat var(--panel);
 }
 /* Field Manual · dark, when the viewer's setting is dark and no theme was picked */
 @media (prefers-color-scheme: dark){
@@ -35,7 +41,7 @@
     --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
     --stage:#0C1C30; --gridline:#10233B;
     --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
-    --fig-bc:#3A5F88;
+    --fig-bc:#3A5F88; --on-data:#0A1626;
     color-scheme:dark;
   }
 }
@@ -46,7 +52,7 @@
   --data-soft:#132C52; --grad-soft:#3A1E12; --nudge-soft:#2C1A42; --ok-soft:#12301F; --neg-soft:#3A1520;
   --stage:#0C1C30; --gridline:#10233B;
   --top-bg:#06101D; --top-ink:#EAF1FA; --top-muted:#8FA7C2; --top-rule:#1E3756; --top-tl:#16304F; --top-field:#0F2036; --top-border:1px solid #1E3756;
-  --fig-bc:#3A5F88;
+  --fig-bc:#3A5F88; --on-data:#0A1626;
   color-scheme:dark;
 }
 :root[data-skin="field-light"]{ color-scheme:light; }
@@ -69,6 +75,10 @@
   --fig-label:none;
   --paper-img:radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.05), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(255,255,255,.035), transparent 50%);
   --paper-size:auto;
+  --on-data:#1D2A24;
+  --track-h:3px; --track-r:2px; --track-bg:repeating-linear-gradient(90deg, var(--muted) 0 7px, transparent 7px 12px);
+  --thumb-w:16px; --thumb-h:16px; --thumb-r:48% 52% 44% 56% / 55% 45% 55% 45%; --thumb-bw:0; --thumb-glow:0 0 0 3px rgba(238,237,230,.14);
+  --thumb-bg:var(--ink);
   color-scheme:dark;
 }
 
@@ -83,6 +93,9 @@
   --h-case:none; --h-track:-.015em; --h-scale:1; --h-weight:700;
   --r:7px; --rf:12px; --line:solid; --fig-bw:1px; --fig-bc:var(--rule);
   --fig-label:none; --paper-img:none; --paper-size:auto;
+  --track-h:6px; --track-r:999px; --track-bg:var(--rule);
+  --thumb-w:18px; --thumb-h:18px; --thumb-r:50%; --thumb-bw:2px; --thumb-glow:0 1px 3px rgba(0,0,0,.28);
+  --thumb-bg:var(--panel);
 }
 :root[data-skin="notebook-light"]{
   --paper:#F3F5F9; --panel:#FFFFFF; --ink:#131B27; --muted:#556175; --rule:#D6DCE6; --wash:#E8EDF4;
@@ -90,6 +103,7 @@
   --data-soft:#E2EAFB; --grad-soft:#FBE8DB; --nudge-soft:#F7E0EF; --ok-soft:#DFF2E7; --neg-soft:#F9E1E5;
   --stage:#F7F9FC;
   --top-bg:#F3F5F9; --top-ink:#131B27; --top-muted:#556175; --top-rule:#D6DCE6; --top-tl:#E2EAFB; --top-field:#FFFFFF; --top-border:1px solid #D6DCE6;
+  --on-data:#FFFFFF;
   color-scheme:light;
 }
 :root[data-skin="notebook-dark"]{
@@ -98,6 +112,7 @@
   --data-soft:#1A2745; --grad-soft:#3B2517; --nudge-soft:#3A1A31; --ok-soft:#173225; --neg-soft:#3A1820;
   --stage:#111823;
   --top-bg:#0E131B; --top-ink:#E4E8EF; --top-muted:#9AA5B7; --top-rule:#29334A; --top-tl:#1A2745; --top-field:#151C27; --top-border:1px solid #29334A;
+  --on-data:#0E131B;
   color-scheme:dark;
 }
 
@@ -117,6 +132,10 @@
   --h-case:none; --h-track:-.01em; --h-scale:1.04; --h-weight:500;
   --r:4px; --rf:4px; --line:solid; --fig-bw:1px; --fig-bc:#1B1E27;
   --fig-label:none; --paper-img:none; --paper-size:auto;
+  --on-data:#0B0C10;
+  --track-h:2px; --track-r:1px; --track-bg:color-mix(in srgb, var(--muted) 45%, transparent);
+  --thumb-w:14px; --thumb-h:14px; --thumb-r:50%; --thumb-bw:0; --thumb-glow:0 0 0 4px var(--data-soft), 0 0 12px var(--data);
+  --thumb-bg:var(--data);
   color-scheme:dark;
 }
 
@@ -231,7 +250,7 @@ svg{display:block;max-width:100%;height:auto;font-family:var(--f-mono)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .seg button:focus-visible{outline:2px solid var(--data);outline-offset:-2px}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;color:var(--ink);cursor:pointer;user-select:none}
-.chk input{accent-color:var(--data);width:16px;height:16px}
+.chk input{flex:none}
 .readout{font:.82rem/1.65 var(--f-mono);background:var(--wash);border-radius:var(--r);padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:0 14px;min-width:0;overflow-x:auto;margin:0}
 .readout dt{color:var(--muted)}
 .readout dd{margin:0;word-break:break-word}
@@ -239,7 +258,23 @@ svg{display:block;max-width:100%;height:auto;font-family:var(--f-mono)}
 .note.ok{background:var(--ok-soft)}
 .note.warn{background:var(--nudge-soft)}
 .note.plain{background:var(--wash)}
-input[type=range]{accent-color:var(--data);width:100%;min-width:0}
+/* sliders and checkboxes, drawn from the theme: each theme sets its own --track-* and --thumb-* look */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;min-width:0;height:24px;margin:0;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:var(--track-h);border-radius:var(--track-r);background:linear-gradient(to right, var(--data) var(--fill, 50%), transparent var(--fill, 50%)), var(--track-bg)}
+input[type=range]::-moz-range-track{height:var(--track-h);border-radius:var(--track-r);background:var(--track-bg)}
+input[type=range]::-moz-range-progress{height:var(--track-h);border-radius:var(--track-r);background:var(--data)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:var(--thumb-w);height:var(--thumb-h);margin-top:calc((var(--track-h) - var(--thumb-h)) / 2);border:var(--thumb-bw) solid var(--data);border-radius:var(--thumb-r);background:var(--thumb-bg);box-shadow:var(--thumb-glow);transition:transform .12s}
+input[type=range]::-moz-range-thumb{box-sizing:border-box;width:var(--thumb-w);height:var(--thumb-h);border:var(--thumb-bw) solid var(--data);border-radius:var(--thumb-r);background:var(--thumb-bg);box-shadow:var(--thumb-glow);transition:transform .12s}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15)}
+input[type=range]:hover::-moz-range-thumb,input[type=range]:active::-moz-range-thumb{transform:scale(1.15)}
+input[type=range]:active{cursor:grabbing}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;box-sizing:border-box;width:16px;height:16px;margin:0;display:inline-grid;place-content:center;border:1.5px var(--line) var(--muted);border-radius:min(var(--r), 4px);background:var(--panel);cursor:pointer;transition:background .12s,border-color .12s}
+input[type=checkbox]::before{content:"";width:8px;height:4px;border:solid var(--on-data);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .12s}
+input[type=checkbox]:hover{border-color:var(--ink)}
+input[type=checkbox]:checked{background:var(--data);border-color:var(--data);border-style:solid}
+input[type=checkbox]:checked::before{transform:translateY(-1px) rotate(-45deg) scale(1)}
+input[type=range]:disabled,input[type=checkbox]:disabled{opacity:.45;cursor:default}
+@media (forced-colors:active){ input[type=range],input[type=checkbox]{-webkit-appearance:auto;appearance:auto} }
 .slider{display:grid;grid-template-columns:minmax(2.2em,auto) minmax(0,1fr) minmax(6ch,auto);align-items:center;gap:10px;font-size:.85rem}
 .slider label{font-family:var(--f-display);font-style:italic;font-size:1rem;color:var(--ink)}
 .slider output{font:600 .82rem var(--f-mono);text-align:right;color:var(--data)}
@@ -2094,6 +2129,31 @@ function whenNear(el, fn) {
 }
 
 
+
+// ---- lib: controls.js ----
+// Sliders show how far along they are: base.css fills the track up to --fill. Pages set .value
+// from code all the time (demos, presets, drags), so the fill follows the value setter as well.
+
+
+function rangeFill(el) {
+  const lo = el.min === "" ? 0 : +el.min, hi = el.max === "" ? 100 : +el.max;
+  const p = hi > lo ? clamp((+el.value - lo) / (hi - lo), 0, 1) : 0;
+  el.style.setProperty("--fill", Math.round(p * 1000) / 10 + "%");
+}
+
+safe("controls", () => {
+  for (const prop of ["value", "valueAsNumber"]) {
+    const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, prop);
+    if (!d || !d.set) continue;
+    Object.defineProperty(HTMLInputElement.prototype, prop, {
+      ...d, set(v) { d.set.call(this, v); if (this.type === "range") rangeFill(this); },
+    });
+  }
+  document.addEventListener("input", e => { if (e.target.type === "range") rangeFill(e.target); }, true);
+  $$('input[type="range"]').forEach(rangeFill);
+  // and any slider a picture builds while it starts up
+  setTimeout(() => $$('input[type="range"]').forEach(rangeFill), 0);
+});
 
 // ---- lib: three-stage.js ----
 

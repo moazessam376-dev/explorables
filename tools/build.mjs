@@ -13,7 +13,7 @@ import { validatePlan, pageConfig } from "./plan.mjs";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 // lib scripts, in the order they must run
-export const LIB_ORDER = ["core", "three-stage", "graph2d", "links", "skin", "follow-core", "follow", "progress", "autoplay"];
+export const LIB_ORDER = ["core", "controls", "three-stage", "graph2d", "links", "skin", "follow-core", "follow", "progress", "autoplay"];
 
 export const readText = p => readFileSync(p, "utf8").replace(/^﻿/, "");
 // lib files are ES modules for testing; on the page they share one script scope
