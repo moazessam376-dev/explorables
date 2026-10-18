@@ -55,7 +55,8 @@ test("the course home shares the course's saved theme with its pages", () => {
 
 test("the home page has a title, the theme picker and no follow bar", () => {
   const html = renderCourseHome(course());
-  assert.ok(html.startsWith("<title>Neural Networks: Zero to Hero</title>"));
+  assert.ok(html.startsWith("<!doctype html>"));
+  assert.ok(html.includes("<title>Neural Networks: Zero to Hero</title>"));
   assert.match(html, /id="skin"/);
   assert.doesNotMatch(html, /id="fl-play"/);
 });

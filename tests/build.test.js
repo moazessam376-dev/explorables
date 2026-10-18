@@ -16,7 +16,10 @@ test("builds the mini page into one self-contained file", () => {
   const r = build("page", join(root, "tests/fixtures/mini-page"), "--out", file);
   assert.equal(r.status, 0, r.stderr);
   const html = readFileSync(file, "utf8");
-  assert.ok(html.startsWith("<title>Mini</title>"));
+  // standards mode and UTF-8 when the file is opened directly; the artifact host wraps the page
+  // in its own skeleton, where a second doctype is ignored
+  assert.ok(html.startsWith('<!doctype html>\n<meta charset="utf-8">'), html.slice(0, 80));
+  assert.ok(html.includes("<title>Mini</title>"));
   assert.ok(html.includes("const PAGE ="));
   assert.ok(!/^\s*(import|export) /m.test(html), "no import/export lines left");
   const srcs = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
