@@ -1,0 +1,5 @@
+node_modules/
+*.log
+tests/.out/
+.superpowers/
+**/.preview.html
