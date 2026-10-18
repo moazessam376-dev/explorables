@@ -1,3 +1,6 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Micrograd Companion</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -555,7 +558,7 @@ section.st.is-done .st-head h2::after{content:" ✓";color:var(--ok)}
         <button class="btn ghost sm" type="button" id="fl-resume" hidden>↓ Jump to now</button>
         <label class="chk fl-video" title="Scroll to what the lecture is on, but never while you're busy on the page"><input type="checkbox" id="fl-auto" checked> auto-scroll</label>
         <label class="chk fl-video" title="Pictures act out what the lecture is doing, and loops start the first time you reach them"><input type="checkbox" id="fl-autoplay" checked> auto-play</label>
-        <label class="chk" title="Mark a section done when the follow-along moves past it"><input type="checkbox" id="fl-autodone"> auto-complete</label>
+        <label class="chk fl-video" title="Mark a section done when the follow-along moves past it"><input type="checkbox" id="fl-autodone"> auto-complete</label>
       </span>
     </div>
   </div>
@@ -2172,6 +2175,14 @@ const HAS_GL = (() => {
   try { const c = document.createElement("canvas"); return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))); }
   catch (e) { return false; }
 })();
+// why a 3D picture can't show: three.js didn't load (offline, or cdnjs blocked), or no WebGL
+const noStageNote = () => '<div class="nogl">' + (typeof THREE === "undefined"
+  ? "This 3D picture needs three.js, which loads from cdnjs.cloudflare.com and couldn't load (are you offline?)."
+  : "This 3D picture needs WebGL, and this browser has it turned off.") + " The rest of the page still works.</div>";
+// stages are built when you scroll near them; without three.js, say so in every one right away
+if (typeof document !== "undefined" && typeof THREE === "undefined") safe("no-three", () => {
+  document.querySelectorAll(".stage").forEach(s => { if (!s.children.length) s.innerHTML = noStageNote(); });
+});
 const isDark = () => {
   const c = new THREE.Color(cssVar("--paper"));
   return (c.r + c.g + c.b) / 3 < 0.4;
@@ -2180,10 +2191,7 @@ const isDark = () => {
 class Stage {
   constructor(host, o = {}) {
     this.host = host; this.ok = false;
-    if (typeof THREE === "undefined" || !HAS_GL) {
-      host.innerHTML = '<div class="nogl">This 3D picture needs WebGL, and this browser has it turned off. The rest of the page still works.</div>';
-      return;
-    }
+    if (typeof THREE === "undefined" || !HAS_GL) { host.innerHTML = noStageNote(); return; }
     this.ok = true;
     const r = this.renderer = new THREE.WebGLRenderer({ antialias: true });
     r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -2712,15 +2720,16 @@ function actionDue({ actFor, now, until, autoPlay, engaged, onScreen }) {
 }
 
 // Sections whose end the clock passed between prevT and t. A section ends where the next
-// different section's chapter starts (neighbouring chapters of one section count as one).
-function autoCompleteDue(chapters, prevT, t) {
+// different section's chapter starts (neighbouring chapters of one section count as one);
+// the last one ends at `end`, the end of the source.
+function autoCompleteDue(chapters, prevT, t, end = Infinity) {
   if (!(t > prevT)) return [];
   const merged = [];
   for (const c of chapters) if (!merged.length || merged[merged.length - 1].id !== c[2]) merged.push({ id: c[2], start: c[0] });
   const out = [];
   merged.forEach((s, i) => {
-    const end = i + 1 < merged.length ? merged[i + 1].start : Infinity;
-    if (prevT < end && end <= t && !out.includes(s.id)) out.push(s.id);
+    const stop = i + 1 < merged.length ? merged[i + 1].start : end;
+    if (prevT < stop && stop <= t && !out.includes(s.id)) out.push(s.id);
   });
   return out;
 }
@@ -2921,8 +2930,9 @@ safe("follow", () => {
     resume.hidden = !(pending && autoScroll);
     if (!resume.hidden) resume.textContent = `↓ Jump to ${fmtTime(anchors[idx].t)}`;
     if (now - lastSave > 2000) { save(); lastSave = now; }
-    if (t >= END) playing = false;
     paint(); tell();
+    // stop after telling, so listeners still see the last stretch as played
+    if (t >= END) { playing = false; paint(); }
     requestAnimationFrame(frame);
   }
 
@@ -3049,7 +3059,7 @@ safe("progress", () => {
   document.addEventListener("explorables:time", e => {
     const { t, prevT, playing } = e.detail;
     if (!auto || !playing) return;
-    const passed = autoCompleteDue(PAGE.chapters, prevT, t).filter(id => !done.has(id));
+    const passed = autoCompleteDue(PAGE.chapters, prevT, t, PAGE.source && PAGE.source.duration).filter(id => !done.has(id));
     if (passed.length) { passed.forEach(id => done.add(id)); save(); paint(); }
   });
   paint();

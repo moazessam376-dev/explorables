@@ -20,3 +20,8 @@ library, offer a GitHub issue, and only file it with their permission.
 | **renamed import** | `import { idxAt as idxIn }` broke in the page, because the build strips imports. | The build refuses renamed imports; use the original names. |
 | greedy word checks | A "no personal words" test matched CSS names like `--h-track`. | Check visible text only (strip `<style>` and `<script>`). |
 | file previews | The app's browser pane shows files outside the project as script-less snapshots. | Use `tools/verify.mjs` (headless Chrome) to test pages. |
+| **quirks** mode | A built page opened straight from disk had no doctype, so the browser used quirks mode and guessed the encoding. | Pages start with `<!doctype html>` and a UTF-8 charset; inside the artifact host's skeleton the extra doctype is ignored. |
+| last section never done | Auto-complete only fired when the clock entered the next chapter, and the last section has none. | The last section ends at `source.duration`; tell listeners the final time before stopping. |
+| **three.js** offline | Without the cdnjs script, 3D stages stayed blank (or blamed WebGL) until scrolled to. | `three-stage.js` fills every stage with a "three.js couldn't load" notice right away. |
+| ids in a **RegExp** | A section id with `+` or `.` went into `new RegExp` unescaped and verify missed the section. | Escape anything you build a RegExp from. |
+| tests touching tracked files | The example test rebuilt the tracked `index.html` on every run. | Tests build copies under `tests/.out`. |
